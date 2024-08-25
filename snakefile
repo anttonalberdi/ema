@@ -30,7 +30,7 @@ def detect_extension(directory, valid_extensions):
         return None
 
 valid_extensions = ["fa", "fna", "fasta", "fa.gz", "fna.gz", "fasta.gz"]
-extension = detect_extension("resources/genomes/")
+extension = detect_extension("resources/genomes/",valid_extensions)
 
 # List genome and target wildcards
 genomes, = glob_wildcards(f"resources/genomes/{{genome}}.{extension}")
