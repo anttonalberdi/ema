@@ -4,25 +4,25 @@
 # 2024/08/25
 ######
 
+import os
+import re
+
 #### Fetch input genomes
 
 def detect_extension(directory, valid_extensions):
     extensions = set() 
+    pattern = re.compile(r'\.([a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*)$')
+
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
         if os.path.isdir(file_path):
             continue
-        _, ext = os.path.splitext(filename)
-        ext = ext.lstrip('.')
-        if ext:
-            # Check if the extension is in the list of valid extensions
+        match = pattern.search(filename)
+        if match:
+            ext = match.group(1)
             if ext in valid_extensions:
                 extensions.add(ext)
-            elif any(ext.endswith(valid_ext) for valid_ext in valid_extensions):
-                # For cases like .gz extensions, check the base extension
-                base_ext = ext.split('.')[-2]  # Assumes .gz is last if present
-                if base_ext in valid_extensions:
-                    extensions.add(base_ext)
+
     if len(extensions) == 1:
         return extensions.pop()  # Return the single common extension
     else:
@@ -47,7 +47,7 @@ rule prepare_input:
         "results/input/{genome}.fna"
     params:
         jobname="{genome}.pi",
-        extension=lambda wildcards: extension  # Use lambda to pass the extension
+        extension=lambda wildcards: extension
     threads:
         1
     resources:
@@ -56,17 +56,34 @@ rule prepare_input:
     shell:
         """
             if [[ "{params.extension}" == "gz" ]]; then
-                echo "Decompressing {input} to {output}"
                 gunzip -c {input} > {output}
             else
-                echo "Processing {input} as {output}"
                 cp {input} {output}
             fi
         """
 
-rule final:
+rule prodigal:
     input:
         "results/input/{genome}.fna"
+    output:
+        fna="results/prodigal/{genome}.fna",
+        faa="results/prodigal/{genome}.faa"
+    params:
+        jobname="{genome}.pr",
+    threads:
+        1
+    resources:
+        mem_gb=8,
+        time=15
+    shell:
+        """
+        module load prodigal/2.6.3
+        prodigal -i {input} -d {output.fna} -a {output.faa}
+        """
+
+rule final:
+    input:
+        "results/prodigal/{genome}.faa"
     output:
         "results/output/{genome}.tsv"
     params:
