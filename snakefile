@@ -67,7 +67,7 @@ rule prepare_input:
 
 rule final:
     input:
-        expand("resources/input/{genome}.fna", genome=genomes)
+        expand("results/input/{genome}.fna", genome=genomes)
     output:
         "results/annotations.tsv"
     params:
