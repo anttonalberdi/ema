@@ -38,17 +38,16 @@ genomes, = glob_wildcards(f"resources/genomes/{{genome}}.{extension}")
 # Expand target files
 rule all:
     input:
-        "results/annotations.tsv"
-
+        expand("results/output/{genome}.tsv", genome=genomes)
 
 rule prepare_input:
     input:
-        "resources/genomes/{genome}.{extension}"
+        lambda wildcards: f"resources/genomes/{wildcards.genome}.{extension}"
     output:
         "results/input/{genome}.fna"
     params:
         jobname="{genome}.pi",
-        extension="{extension}"
+        extension=lambda wildcards: extension  # Use lambda to pass the extension
     threads:
         1
     resources:
@@ -56,7 +55,7 @@ rule prepare_input:
         time=5
     shell:
         """
-            if [[ "{params.ext}" == "gz" ]]; then
+            if [[ "{params.extension}" == "gz" ]]; then
                 echo "Decompressing {input} to {output}"
                 gunzip -c {input} > {output}
             else
@@ -67,9 +66,9 @@ rule prepare_input:
 
 rule final:
     input:
-        expand("results/input/{genome}.fna", genome=genomes)
+        "results/input/{genome}.fna"
     output:
-        "results/annotations.tsv"
+        "results/output/{genome}.tsv"
     params:
         jobname="allgenomes.fi"
     threads:
