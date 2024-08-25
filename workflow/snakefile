@@ -6,7 +6,7 @@
 
 #### Fetch input genomes
 
-def detect_valid_extension(directory, valid_extensions):
+def detect_extension(directory, valid_extensions):
     extensions = set() 
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
