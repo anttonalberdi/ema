@@ -6,9 +6,23 @@
 
 import os
 import re
+import requests
+
+#### Download databases
+
+#KOfams
+kofam_path = 'databases/kofam/profiles.tar.gz'
+kofam_url = 'https://www.genome.jp/ftp/db/kofam/profiles.tar.gz'
+
+if not os.path.exists(kofam_path):
+    print("Downloading KOfams database...")
+    os.makedirs(os.path.dirname(kofam_path), exist_ok=True)
+    response = requests.get(kofam_url)
+    if response.status_code == 200:
+        with open(file_path, 'wb') as file:
+            file.write(response.content)
 
 #### Fetch input genomes
-
 def detect_extension(directory, valid_extensions):
     extensions = set() 
     pattern = re.compile(r'\.([a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*)$')
@@ -79,6 +93,25 @@ rule prodigal:
         """
         module load prodigal/2.6.3
         prodigal -i {input} -d {output.fna} -a {output.faa}
+        """
+
+rule kofams:
+    input:
+        faa="results/prodigal/{genome}.faa",
+        db="resources/databases/kofams/profiles.tar.gz"
+    output:
+        "results/kofams/{genome}.txt"
+    params:
+        jobname="{genome}.kf",
+    threads:
+        1
+    resources:
+        mem_gb=8,
+        time=15
+    shell:
+        """
+        module load hmmer/3.3.2
+        hmmscan -o {output} --noali {input.db} {input.faa}
         """
 
 rule final:
