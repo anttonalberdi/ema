@@ -8,20 +8,6 @@ import os
 import re
 import requests
 
-#### Download databases
-
-#KOfams
-kofam_path = 'databases/kofam/profiles.tar.gz'
-kofam_url = 'https://www.genome.jp/ftp/db/kofam/profiles.tar.gz'
-
-if not os.path.exists(kofam_path):
-    print("Downloading KOfams database...")
-    os.makedirs(os.path.dirname(kofam_path), exist_ok=True)
-    response = requests.get(kofam_url)
-    if response.status_code == 200:
-        with open(file_path, 'wb') as file:
-            file.write(response.content)
-
 #### Fetch input genomes
 def detect_extension(directory, valid_extensions):
     extensions = set() 
@@ -76,6 +62,41 @@ rule prepare_input:
             fi
         """
 
+#### Prepare databases
+
+rule prepare_kofams:
+    output:
+        h3f="resources/databases/kofams/kofams.h3f",
+        h3i="resources/databases/kofams/kofams.h3i",
+        h3m="resources/databases/kofams/kofams.h3m",
+        h3p="resources/databases/kofams/kofams.h3p"
+    params:
+        jobname="pr.kofams"
+    threads:
+        1
+    resources:
+        mem_gb=16,
+        time=1440
+    shell:
+        """
+        # Download
+        if [ ! -f resources/databases/kofams/profiles.tar.gz ]; then
+            wget https://www.genome.jp/ftp/db/kofam/profiles.tar.gz
+        fi
+
+        # Decompress
+        if [ ! -f resources/databases/kofams/kofams ]; then
+            tar -xvzf profiles.tar.gz
+            cat profiles/*hmm > kofams
+        fi
+
+        # Build index
+        if [ ! -f {output.h3p} ]; then
+            module load hmmer/3.3.2
+            hmmpress -f kofams.hmm
+        fi
+        """
+
 rule prodigal:
     input:
         "results/input/{genome}.fna"
@@ -98,7 +119,7 @@ rule prodigal:
 rule kofams:
     input:
         faa="results/prodigal/{genome}.faa",
-        db="resources/databases/kofams/profiles.tar.gz"
+        db="resources/databases/kofams/kofams"
     output:
         "results/kofams/{genome}.txt"
     params:
