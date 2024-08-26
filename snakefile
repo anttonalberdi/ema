@@ -79,8 +79,14 @@ rule prepare_kofams:
         time=1440
     shell:
         """
+        # Create directory
+        if [ ! -f resources/databases/kofams ]; then
+            mkdir resources/databases/kofams
+        fi
+
         # Download
         if [ ! -f resources/databases/kofams/profiles.tar.gz ]; then
+            cd resources/databases/kofams/
             wget https://www.genome.jp/ftp/db/kofam/profiles.tar.gz
         fi
 
@@ -88,12 +94,13 @@ rule prepare_kofams:
         if [ ! -f resources/databases/kofams/kofams ]; then
             tar -xvzf profiles.tar.gz
             cat profiles/*hmm > kofams
+            rm -rf profiles
         fi
 
         # Build index
         if [ ! -f {output.h3p} ]; then
             module load hmmer/3.3.2
-            hmmpress -f kofams.hmm
+            hmmpress -f kofams
         fi
         """
 
@@ -137,7 +144,7 @@ rule kofams:
 
 rule final:
     input:
-        "results/prodigal/{genome}.faa"
+        "results/kofams/{genome}.txt"
     output:
         "results/output/{genome}.tsv"
     params:
