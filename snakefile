@@ -126,11 +126,12 @@ rule prodigal:
 rule kofams:
     input:
         faa="results/prodigal/{genome}.faa",
-        db="resources/databases/kofams/kofams"
+        db="resources/databases/kofams/kofams.h3p"
     output:
         "results/kofams/{genome}.txt"
     params:
         jobname="{genome}.kf",
+        db="resources/databases/kofams/kofams"
     threads:
         1
     resources:
@@ -139,7 +140,7 @@ rule kofams:
     shell:
         """
         module load hmmer/3.3.2
-        hmmscan -o {output} --noali {input.db} {input.faa}
+        hmmscan -o {output} --noali {params.db} {input.faa}
         """
 
 rule final:
