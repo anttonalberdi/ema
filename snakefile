@@ -203,7 +203,8 @@ rule cazy:
 
 rule final:
     input:
-        "results/kofams/{genome}.txt"
+        kofams="results/kofams/{genome}.txt",
+        cazy="results/cazy/{genome}.txt"
     output:
         "results/output/{genome}.tsv"
     params:
