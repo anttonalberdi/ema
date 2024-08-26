@@ -136,7 +136,7 @@ rule kofams:
         1
     resources:
         mem_gb=8,
-        time=15
+        time=60
     shell:
         """
         module load hmmer/3.3.2
