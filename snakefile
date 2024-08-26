@@ -104,6 +104,42 @@ rule prepare_kofams:
         fi
         """
 
+rule prepare_cazy:
+    output:
+        h3f="resources/databases/cazy/cazy.h3f",
+        h3i="resources/databases/cazy/cazy.h3i",
+        h3m="resources/databases/cazy/cazy.h3m",
+        h3p="resources/databases/cazy/cazy.h3p"
+    params:
+        jobname="pr.cazy"
+    threads:
+        1
+    resources:
+        mem_gb=16,
+        time=1440
+    shell:
+        """
+        # Create directory
+        if [ ! -f resources/databases/cazy ]; then
+            mkdir resources/databases/cazy
+        fi
+
+        # Download
+        if [ ! -f resources/databases/cazy/cazy ]; then
+            cd resources/databases/cazy/
+            wget https://bcb.unl.edu/dbCAN2/download/dbCAN-HMMdb-V13.txt
+            mv dbCAN-HMMdb-V13.txt cazy
+        fi
+
+        # Build index
+        if [ ! -f {output.h3p} ]; then
+            module load hmmer/3.3.2
+            hmmpress -f cazy
+        fi
+        """
+
+### Run pipeline
+
 rule prodigal:
     input:
         "results/input/{genome}.fna"
@@ -132,6 +168,26 @@ rule kofams:
     params:
         jobname="{genome}.kf",
         db="resources/databases/kofams/kofams"
+    threads:
+        1
+    resources:
+        mem_gb=8,
+        time=60
+    shell:
+        """
+        module load hmmer/3.3.2
+        hmmscan -o {output} --noali {params.db} {input.faa}
+        """
+
+rule cazy:
+    input:
+        faa="results/prodigal/{genome}.faa",
+        db="resources/databases/cazy/cazy.h3p"
+    output:
+        "results/cazy/{genome}.txt"
+    params:
+        jobname="{genome}.kf",
+        db="resources/databases/cazy/cazy"
     threads:
         1
     resources:
