@@ -164,7 +164,8 @@ rule kofams:
         faa="results/prodigal/{genome}.faa",
         db="resources/databases/kofams/kofams.h3p"
     output:
-        "results/kofams/{genome}.txt"
+        txt="results/kofams/{genome}.txt",
+        tsv="results/kofams/{genome}.tsv"
     params:
         jobname="{genome}.kf",
         db="resources/databases/kofams/kofams"
@@ -176,7 +177,7 @@ rule kofams:
     shell:
         """
         module load hmmer/3.3.2
-        hmmscan -o {output} --noali {params.db} {input.faa}
+        hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
         """
 
 rule cazy:
@@ -184,7 +185,8 @@ rule cazy:
         faa="results/prodigal/{genome}.faa",
         db="resources/databases/cazy/cazy.h3p"
     output:
-        "results/cazy/{genome}.txt"
+        txt="results/cazy/{genome}.txt",
+        tsv="results/cazy/{genome}.tsv"
     params:
         jobname="{genome}.kf",
         db="resources/databases/cazy/cazy"
@@ -196,7 +198,7 @@ rule cazy:
     shell:
         """
         module load hmmer/3.3.2
-        hmmscan -o {output} --noali {params.db} {input.faa}
+        hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
         """
 
 rule final:
