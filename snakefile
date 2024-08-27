@@ -175,6 +175,46 @@ rule prepare_pfam:
         fi
         """
 
+rule prepare_vfdb:
+    output:
+        h3f="resources/databases/vfdb/vfdb.h3f",
+        h3i="resources/databases/vfdb/vfdb.h3i",
+        h3m="resources/databases/vfdb/vfdb.h3m",
+        h3p="resources/databases/vfdb/vfdb.h3p"
+    params:
+        jobname="pr.vfdb"
+    threads:
+        1
+    resources:
+        mem_gb=16,
+        time=300
+    shell:
+        """
+        # Create directory
+        if [ ! -d resources/databases/vfdb ]; then
+            mkdir resources/databases/vfdb
+        fi
+
+        # Download
+        if [ ! -f resources/databases/vfdb/vfdb ]; then
+            cd resources/databases/vfdb/
+            wget http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
+            gunzip VFDB_setB_pro.fas
+        fi
+
+        # Build hmms
+        if [ ! -f vfdb ]; then
+            module load hmmer/3.3.2
+            hmmbuild vfdb VFDB_setB_pro.fas
+        fi
+
+        # Build index
+        if [ ! -f {output.h3p} ]; then
+            module load hmmer/3.3.2
+            hmmpress -f vfdb
+        fi
+        """
+
 ### Run pipeline
 
 rule prodigal:
@@ -259,11 +299,33 @@ rule pfam:
         hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
         """
 
+rule vfdb:
+    input:
+        faa="results/prodigal/{genome}.faa",
+        db="resources/databases/vfdb/vfdb.h3p"
+    output:
+        txt="results/vfdb/{genome}.txt",
+        tsv="results/vfdb/{genome}.tsv"
+    params:
+        jobname="{genome}.pf",
+        db="resources/databases/vfdb/vfdb"
+    threads:
+        1
+    resources:
+        mem_gb=8,
+        time=60
+    shell:
+        """
+        module load hmmer/3.3.2
+        hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
+        """
+
 rule final:
     input:
         kofams="results/kofams/{genome}.txt",
         cazy="results/cazy/{genome}.txt",
-        pfam="results/pfam/{genome}.txt"
+        pfam="results/pfam/{genome}.txt",
+        vfdb="results/vfdb/{genome}.txt"
     output:
         "results/output/{genome}.tsv"
     params:
