@@ -458,10 +458,10 @@ rule signalp:
     input:
         "results/prodigal/{genome}.faa"
     output:
-        "results/signalp/{sample}.txt"
+        "results/signalp/{genome}.txt"
     params:
-        jobname="{sample}.sp",
-        outputdir="results/signalp/{sample}"
+        jobname="{genome}.sp",
+        outputdir="results/signalp/{genome}"
     threads:
         4
     resources:
