@@ -263,7 +263,7 @@ rule final:
     input:
         kofams="results/kofams/{genome}.txt",
         cazy="results/cazy/{genome}.txt",
-        pfam="results/cazy/{genome}.txt"
+        pfam="results/pfam/{genome}.txt"
     output:
         "results/output/{genome}.tsv"
     params:
