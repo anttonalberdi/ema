@@ -182,19 +182,16 @@ rule prepare_pfam:
         fi
         """
 
-rule prepare_vfdb:
+rule prepare_vfdb1:
     output:
-        h3f="resources/databases/vfdb/vfdb.h3f",
-        h3i="resources/databases/vfdb/vfdb.h3i",
-        h3m="resources/databases/vfdb/vfdb.h3m",
-        h3p="resources/databases/vfdb/vfdb.h3p"
+        directory("resources/databases/vfdb")
     params:
-        jobname="pr.vfdb"
+        jobname="pr.vfdb1"
     threads:
         1
     resources:
         mem_gb=16,
-        time=300
+        time=60
     shell:
         """
         # Create directory
@@ -209,16 +206,83 @@ rule prepare_vfdb:
             gunzip VFDB_setB_pro.fas
         fi
 
-        # Build hmms
-        if [ ! -f vfdb ]; then
-            module load hmmer/3.3.2
-            hmmbuild vfdb VFDB_setB_pro.fas
-        fi
+        #Split fasta
+        python workflow/scripts/split_vf.py VFDB_setB_pro.fas
+        """
 
-        # Build index
+rule prepare_vfdb2:
+    input:
+        "resources/databases/vfdb/{vfid}.fasta"
+    output:
+        "resources/databases/vfdb/{vfid}.aln"
+    params:
+        jobname="pr.vfdb2"
+    threads:
+        1
+    resources:
+        mem_gb=16,
+        time=60
+    shell:
+        """
+        module load muscle/5.1
+        muscle -in {input} -out {output}
+        """
+
+rule prepare_vfdb3:
+    input:
+        "resources/databases/vfdb/{vfid}.aln"
+    output:
+        "resources/databases/vfdb/{vfid}.hmm"
+    params:
+        jobname="pr.vfdb3"
+    threads:
+        1
+    resources:
+        mem_gb=16,
+        time=60
+    shell:
+        """
+        module load hmmer/3.3.2
+        hmmbuild {output} {input} 
+        """
+
+rule prepare_vfdb4:
+    input:
+        expand("hmm_profiles/{vfid}.hmm", vfid=lambda wildcards: [os.path.splitext(f)[0] for f in os.listdir("hmm_profiles")])
+    output:
+        "resources/databases/vfdb/vfdb"
+    params:
+        jobname="pr.vfdb4"
+    threads:
+        1
+    resources:
+        mem_gb=16,
+        time=60
+    shell:
+        """
+        cat {input} > {output}
+        """
+
+rule prepare_vfdb5:
+    input:
+        "resources/databases/vfdb/vfdb"
+    output:
+        h3f="resources/databases/vfdb/vfdb.h3f",
+        h3i="resources/databases/vfdb/vfdb.h3i",
+        h3m="resources/databases/vfdb/vfdb.h3m",
+        h3p="resources/databases/vfdb/vfdb.h3p"
+    params:
+        jobname="pr.vfdb5"
+    threads:
+        1
+    resources:
+        mem_gb=16,
+        time=60
+    shell:
+        """
         if [ ! -f {output.h3p} ]; then
             module load hmmer/3.3.2
-            hmmpress -f vfdb
+            hmmpress -f {input}
         fi
         """
 
