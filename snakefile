@@ -160,12 +160,19 @@ rule prepare_pfam:
             mkdir resources/databases/pfam
         fi
 
-        # Download
+        # Download pfams
         if [ ! -f resources/databases/pfam/pfam ]; then
             cd resources/databases/pfam/
             wget https://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
             gunzip Pfam-A.hmm.gz
             mv Pfam-A.hmm pfam
+        fi
+
+        # Download pfam-ec mapping
+        if [ ! -f resources/databases/pfam/pfam ]; then
+            cd resources/databases/pfam/
+            wget https://ecdm.loria.fr/data/EC-Pfam_calculated_associations_Extended.csv
+            mv EC-Pfam_calculated_associations_Extended.csv pfam_ec.tsv
         fi
 
         # Build index
