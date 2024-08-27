@@ -188,7 +188,7 @@ rule cazy:
         txt="results/cazy/{genome}.txt",
         tsv="results/cazy/{genome}.tsv"
     params:
-        jobname="{genome}.kf",
+        jobname="{genome}.cz",
         db="resources/databases/cazy/cazy"
     threads:
         1
