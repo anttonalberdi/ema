@@ -62,7 +62,9 @@ rule prepare_input:
             fi
         """
 
-#### Prepare databases
+###########################
+#### Prepare databases #### 
+###########################
 
 rule prepare_kofams:
     output:
@@ -76,7 +78,7 @@ rule prepare_kofams:
         1
     resources:
         mem_gb=16,
-        time=1440
+        time=300
     shell:
         """
         # Create directory
@@ -116,7 +118,7 @@ rule prepare_cazy:
         1
     resources:
         mem_gb=16,
-        time=1440
+        time=300
     shell:
         """
         # Create directory
@@ -135,6 +137,41 @@ rule prepare_cazy:
         if [ ! -f {output.h3p} ]; then
             module load hmmer/3.3.2
             hmmpress -f cazy
+        fi
+        """
+
+rule prepare_pfam:
+    output:
+        h3f="resources/databases/pfam/pfam.h3f",
+        h3i="resources/databases/pfam/pfam.h3i",
+        h3m="resources/databases/pfam/pfam.h3m",
+        h3p="resources/databases/pfam/pfam.h3p"
+    params:
+        jobname="pr.pfam"
+    threads:
+        1
+    resources:
+        mem_gb=16,
+        time=300
+    shell:
+        """
+        # Create directory
+        if [ ! -d resources/databases/pfam ]; then
+            mkdir resources/databases/pfam
+        fi
+
+        # Download
+        if [ ! -f resources/databases/pfam/pfam ]; then
+            cd resources/databases/pfam/
+            wget https://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
+            gunzip Pfam-A.hmm.gz
+            mv Pfam-A.hmm pfam
+        fi
+
+        # Build index
+        if [ ! -f {output.h3p} ]; then
+            module load hmmer/3.3.2
+            hmmpress -f pfam
         fi
         """
 
@@ -201,10 +238,32 @@ rule cazy:
         hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
         """
 
+rule pfam:
+    input:
+        faa="results/prodigal/{genome}.faa",
+        db="resources/databases/pfam/pfam.h3p"
+    output:
+        txt="results/pfam/{genome}.txt",
+        tsv="results/pfam/{genome}.tsv"
+    params:
+        jobname="{genome}.pf",
+        db="resources/databases/pfam/pfam"
+    threads:
+        1
+    resources:
+        mem_gb=8,
+        time=60
+    shell:
+        """
+        module load hmmer/3.3.2
+        hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
+        """
+
 rule final:
     input:
         kofams="results/kofams/{genome}.txt",
-        cazy="results/cazy/{genome}.txt"
+        cazy="results/cazy/{genome}.txt",
+        pfam="results/cazy/{genome}.txt"
     output:
         "results/output/{genome}.tsv"
     params:
