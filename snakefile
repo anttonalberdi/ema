@@ -222,7 +222,49 @@ rule prepare_vfdb:
         fi
         """
 
-### Run pipeline
+rule prepare_amr:
+    output:
+        h3f="resources/databases/amr/amr.h3f",
+        h3i="resources/databases/amr/amr.h3i",
+        h3m="resources/databases/amr/amr.h3m",
+        h3p="resources/databases/amr/amr.h3p"
+    params:
+        jobname="pr.amr"
+    threads:
+        1
+    resources:
+        mem_gb=16,
+        time=300
+    shell:
+        """
+        # Create directory
+        if [ ! -d resources/databases/amr ]; then
+            mkdir resources/databases/amr
+        fi
+
+        # Download
+        if [ ! -f resources/databases/amr/NCBIfam-AMRFinder.HMM.tar.gz ]; then
+            cd resources/databases/amr/
+            wget https://ftp.ncbi.nlm.nih.gov/hmm/NCBIfam-AMRFinder/latest/NCBIfam-AMRFinder.HMM.tar.gz
+        fi
+
+        # Decompress
+        if [ ! -f resources/databases/amr/amr ]; then
+            tar -xvzf NCBIfam-AMRFinder.HMM.tar.gz
+            cat HMM/*.HMM > amr
+            rm -rf HMM
+        fi
+
+        # Build index
+        if [ ! -f {output.h3p} ]; then
+            module load hmmer/3.3.2
+            hmmpress -f amr
+        fi
+        """
+
+##########################
+####   Run pipeline   #### 
+##########################
 
 rule prodigal:
     input:
@@ -327,12 +369,34 @@ rule vfdb:
         hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
         """
 
+rule amr:
+    input:
+        faa="results/prodigal/{genome}.faa",
+        db="resources/databases/amr/amr.h3p"
+    output:
+        txt="results/amr/{genome}.txt",
+        tsv="results/amr/{genome}.tsv"
+    params:
+        jobname="{genome}.ar",
+        db="resources/databases/amr/amr"
+    threads:
+        1
+    resources:
+        mem_gb=8,
+        time=60
+    shell:
+        """
+        module load hmmer/3.3.2
+        hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
+        """
+
 rule final:
     input:
         kofams="results/kofams/{genome}.txt",
         cazy="results/cazy/{genome}.txt",
         pfam="results/pfam/{genome}.txt",
-        vfdb="results/vfdb/{genome}.txt"
+        vfdb="results/vfdb/{genome}.txt",
+        amr="results/amr/{genome}.txt"
     output:
         "results/output/{genome}.tsv"
     params:
