@@ -184,7 +184,7 @@ rule prepare_pfam:
 
 rule prepare_vfdb1:
     output:
-        directory("resources/databases/vfdb")
+        directory("resources/databases/vfdb/fasta")
     params:
         jobname="pr.vfdb1"
     threads:
@@ -212,9 +212,9 @@ rule prepare_vfdb1:
 
 rule prepare_vfdb2:
     input:
-        "resources/databases/vfdb/{vfid}.fasta"
+        "resources/databases/vfdb/fasta/{vfid}.fasta"
     output:
-        "resources/databases/vfdb/{vfid}.aln"
+        "resources/databases/vfdb/fasta/{vfid}.aln"
     params:
         jobname="pr.vfdb2"
     threads:
@@ -230,9 +230,9 @@ rule prepare_vfdb2:
 
 rule prepare_vfdb3:
     input:
-        "resources/databases/vfdb/{vfid}.aln"
+        "resources/databases/vfdb/fasta/{vfid}.aln"
     output:
-        "resources/databases/vfdb/{vfid}.hmm"
+        "resources/databases/vfdb/fasta/{vfid}.hmm"
     params:
         jobname="pr.vfdb3"
     threads:
@@ -248,7 +248,7 @@ rule prepare_vfdb3:
 
 rule prepare_vfdb4:
     input:
-        expand("resources/databases/vfdb/{vfid}.hmm", vfid=lambda wildcards: [os.path.splitext(f)[0] for f in os.listdir("resources/databases/vfdb/") if f.endswith(".hmm")])
+        expand("resources/databases/vfdb/fasta/{vfid}.hmm", vfid=lambda wildcards: [os.path.splitext(f)[0] for f in os.listdir("resources/databases/vfdb/fasta") if f.endswith(".hmm")])
     output:
         "resources/databases/vfdb/vfdb"
     params:
