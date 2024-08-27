@@ -120,7 +120,7 @@ rule prepare_cazy:
     shell:
         """
         # Create directory
-        if [ ! -f resources/databases/cazy ]; then
+        if [ ! -d resources/databases/cazy ]; then
             mkdir resources/databases/cazy
         fi
 
