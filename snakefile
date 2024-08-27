@@ -7,6 +7,8 @@
 import os
 import re
 import requests
+import glob
+
 
 #### Fetch input genomes
 def detect_extension(directory, valid_extensions):
@@ -39,7 +41,7 @@ genomes, = glob_wildcards(f"resources/genomes/{{genome}}.{extension}")
 rule all:
     input:
         expand("results/output/{genome}.tsv", genome=genomes)
-
+        
 rule prepare_input:
     input:
         lambda wildcards: f"resources/genomes/{wildcards.genome}.{extension}"
@@ -211,12 +213,21 @@ checkpoint prepare_vfdb1:
         """
 
 def gather_from_checkpoint(wildcards):
-    checkpoint_output = checkpoints.generate_files.get().output[0]
+    checkpoint_output = checkpoints.prepare_vfdb1.get().output[0]
     return glob.glob("resources/databases/vfdb/fasta/*.fasta")
+
+def get_vfids(directory, extension):
+    # Get all files matching the pattern
+    files = glob.glob(os.path.join(directory, f"*.{extension}"))
+    # Extract vfid from file names
+    vfids = {os.path.basename(file).split('.')[0] for file in files}
+    return sorted(vfids)
+
+vfids = get_vfids("resources/databases/vfdb/fasta", "fasta")
 
 rule prepare_vfdb2:
     input:
-        gather_from_checkpoint
+        "resources/databases/vfdb/fasta/{vfid}.fasta"
     output:
         "resources/databases/vfdb/fasta/{vfid}.aln"
     params:
@@ -252,7 +263,7 @@ rule prepare_vfdb3:
 
 rule prepare_vfdb4:
     input:
-        expand("resources/databases/vfdb/fasta/{vfid}.hmm")
+        expand("resources/databases/vfdb/fasta/{vfid}.hmm", vfid=vfids)
     output:
         "resources/databases/vfdb/vfdb"
     params:
