@@ -247,7 +247,9 @@ rule prepare_vfdb3:
 
 rule prepare_vfdb4:
     input:
-        expand("resources/databases/vfdb/fasta/{vfid}.hmm", vfid=lambda wildcards: [os.path.splitext(f)[0] for f in os.listdir("resources/databases/vfdb/fasta") if f.endswith(".hmm")])
+        expand("resources/databases/vfdb/fasta/{vfid}.hmm", 
+               vfid=lambda wildcards: [os.path.splitext(f)[0] 
+               for f in os.listdir("resources/databases/vfdb/fasta") if f.endswith(".hmm")])
     output:
         "resources/databases/vfdb/vfdb"
     params:
