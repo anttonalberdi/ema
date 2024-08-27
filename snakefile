@@ -200,14 +200,13 @@ rule prepare_vfdb1:
         fi
 
         # Download
-        if [ ! -f resources/databases/vfdb/vfdb ]; then
-            cd resources/databases/vfdb/
-            wget http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
-            gunzip VFDB_setB_pro.fas
+        if [ ! -f resources/databases/vfdb/VFDB_setB_pro.fas ]; then
+        wget -O resources/databases/vfdb/VFDB_setB_pro.fas.gz http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
+        gunzip resources/databases/vfdb/VFDB_setB_pro.fas.gz
         fi
 
         #Split fasta
-        python workflow/scripts/split_vf.py VFDB_setB_pro.fas
+        python workflow/scripts/split_vf.py resources/databases/vfdb/VFDB_setB_pro.fas {output}
         """
 
 rule prepare_vfdb2:
