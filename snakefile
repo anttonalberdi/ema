@@ -390,6 +390,26 @@ rule amr:
         hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
         """
 
+rule signalp:
+    input:
+        "results/prodigal/{genome}.faa"
+    output:
+        "results/signalp/{sample}.tsv"
+    params:
+        jobname="{sample}.sp",
+        outputdir="results/signalp/{sample}"
+    threads:
+        4
+    resources:
+        mem_gb=4,
+        time=60
+    shell:
+        """
+        module load signalp/6h
+        signalp6 --fastafile {input} --output_dir {params.outputdir} --write_procs {threads}
+        cat {params.outputdir}/output.gff3  | cut -f1,3,6 | awk -F' # |[ \t]+' '!/^#/ {{print $1, $6, $7}}' OFS='\t' > {output}
+        """
+
 rule final:
     input:
         kofams="results/kofams/{genome}.txt",
