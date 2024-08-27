@@ -182,11 +182,12 @@ rule prepare_pfam:
         fi
         """
 
-rule prepare_vfdb1:
+checkpoint prepare_vfdb1:
     output:
-        directory("resources/databases/vfdb/fasta")
+        "resources/databases/vfdb/fasta/{vfid}.fasta"
     params:
-        jobname="pr.vfdb1"
+        jobname="pr.vfdb1",
+        outdir="resources/databases/vfdb/fasta/"
     threads:
         1
     resources:
@@ -206,12 +207,16 @@ rule prepare_vfdb1:
         fi
 
         #Split fasta
-        python workflow/scripts/split_vf.py resources/databases/vfdb/VFDB_setB_pro.fas {output}
+        python workflow/scripts/split_vf.py resources/databases/vfdb/VFDB_setB_pro.fas {params.outdir}
         """
+
+def gather_from_checkpoint(wildcards):
+    checkpoint_output = checkpoints.generate_files.get().output[0]
+    return glob.glob("resources/databases/vfdb/fasta/*.fasta")
 
 rule prepare_vfdb2:
     input:
-        "resources/databases/vfdb/fasta/{vfid}.fasta"
+        gather_from_checkpoint
     output:
         "resources/databases/vfdb/fasta/{vfid}.aln"
     params:
@@ -247,9 +252,7 @@ rule prepare_vfdb3:
 
 rule prepare_vfdb4:
     input:
-        expand("resources/databases/vfdb/fasta/{vfid}.hmm", 
-               vfid=lambda wildcards: [os.path.splitext(f)[0] 
-               for f in os.listdir("resources/databases/vfdb/fasta") if f.endswith(".hmm")])
+        expand("resources/databases/vfdb/fasta/{vfid}.hmm")
     output:
         "resources/databases/vfdb/vfdb"
     params:
