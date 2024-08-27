@@ -394,7 +394,7 @@ rule signalp:
     input:
         "results/prodigal/{genome}.faa"
     output:
-        "results/signalp/{sample}.tsv"
+        "results/signalp/{sample}.txt"
     params:
         jobname="{sample}.sp",
         outputdir="results/signalp/{sample}"
@@ -416,7 +416,8 @@ rule final:
         cazy="results/cazy/{genome}.txt",
         pfam="results/pfam/{genome}.txt",
         vfdb="results/vfdb/{genome}.txt",
-        amr="results/amr/{genome}.txt"
+        amr="results/amr/{genome}.txt",
+        sp="results/signalp/{genome}.txt"
     output:
         "results/output/{genome}.tsv"
     params:
