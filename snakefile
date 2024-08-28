@@ -37,12 +37,6 @@ extension = detect_extension("resources/genomes/",valid_extensions)
 # List genome and target wildcards
 genomes, = glob_wildcards(f"resources/genomes/{{genome}}.{extension}")
 
-# Gather vf fastas
-def gather_vf_fastas(wildcards):
-    ck_output = checkpoints.prepare_vfdb1.get(**wildcards).output[0]
-    vfids, = glob_wildcards(os.path.join(ck_output, "{vfid}.fasta"))
-    return expand(os.path.join(ck_output, "{vfid}.fasta"), vfid=vfids)
-
 # Expand target files
 rule all:
     input:
