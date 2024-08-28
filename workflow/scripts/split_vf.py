@@ -26,9 +26,14 @@ def split_fasta_by_vf(input_file, output_dir):
 
     # Write the content to separate files in the specified output directory
     for vf_pattern, lines in vf_content.items():
-        output_file = os.path.join(output_dir, f"{vf_pattern}.fasta")
-        with open(output_file, 'w') as outfile:
-            outfile.writelines(lines)
+        # Count the number of sequences (lines starting with '>')
+        sequence_count = sum(1 for line in lines if line.startswith('>'))
+        
+        # Only write the file if there are more than 5 sequences
+        if sequence_count > 5:
+            output_file = os.path.join(output_dir, f"{vf_pattern}.fasta")
+            with open(output_file, 'w') as outfile:
+                outfile.writelines(lines)
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
