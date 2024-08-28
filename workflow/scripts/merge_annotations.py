@@ -3,6 +3,19 @@ import pandas as pd
 from collections import defaultdict
 from Bio import SearchIO
 
+# Function to select the row with the lowest evalue or randomly if there is a tie
+def select_lowest_evalue(group):
+    # Sort the group by 'evalue' and take the first row of the sorted group
+    return group.sort_values(by='evalue').head(1)
+
+# Function to extract the part after the underscore in ID and append it to seqid
+def append_suffix_to_seqid(row):
+    # Extract the part after 'ID=' and before the first ';'
+    id_part = row['attributes'].split(';')[0].replace('ID=', '')
+    # Extract the part after the underscore
+    suffix = id_part.split('_')[-1]
+    return f"{row['seqid']}_{suffix}"
+
 def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
 
     ##############
@@ -12,6 +25,7 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     annotations = pd.read_csv(gff_file, sep='\t', comment='#', header=None, 
                      names=['seqid', 'source', 'type', 'start', 'end', 
                             'score', 'strand', 'phase', 'attributes'])
+    annotations['seqid'] = annotations.apply(append_suffix_to_seqid, axis=1)
     annotations = annotations.drop(columns=['attributes', 'source', 'score', 'type', 'phase'])
     annotations = annotations.rename(columns={'seqid': 'gene'})
 
@@ -20,7 +34,8 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     #####################
     
     hmm_attribs = ['bitscore', 'evalue', 'id', 'overlap_num', 'region_num']
-
+    evalue_threshold=0.001
+    
     # Parse KOFAMS
     kofams_hits = defaultdict(list)
     query_ids = []
@@ -77,6 +92,11 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     cazy_hits['query_id'] = query_ids
     cazy_df = pd.DataFrame.from_dict(cazy_hits)
     cazy_df = cazy_df.rename(columns={'query_id': 'gene'})
+    cazy_df['id'] = cazy_df['id'].str.replace('.hmm', '', regex=False)
+    cazy_df['evalue'] = pd.to_numeric(cazy_df['evalue'], errors='coerce')
+    cazy_df = cazy_df[cazy_df['evalue'] < evalue_threshold]
+    cazy_df = cazy_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
+    cazy_df = cazy_df.rename(columns={'id': 'cazy'})
 
     # Parse AMR
     amr_hits = defaultdict(list)
@@ -97,20 +117,17 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     amr_df = pd.DataFrame.from_dict(amr_hits)
     amr_df = amr_df.rename(columns={'query_id': 'gene'})
 
+    #####################
+    # Merge annotations #
+    #####################
+
+    annotations = pd.merge(annotations, cazy_df[['gene', 'cazy']], on='gene', how='left')
+
     
-    
-    # Extract the relevant columns (2nd and 3rd columns, which are 0-indexed as 1 and 2)
-    gff_cols = gff_df.iloc[:, [1, 2]]
-    pfam_cols = pfam_df.iloc[:, [1, 2]]
-    
-    # Create a new column in GFF DataFrame to store the comparison results
-    gff_df['Comparison_Result'] = gff_cols.apply(tuple, axis=1).isin(pfam_cols.apply(tuple, axis=1))
-    
-    # Replace True/False with the desired values
-    gff_df['Comparison_Result'] = gff_df['Comparison_Result'].replace({True: 'Match', False: 'No Match'})
-    
-    # Write the modified GFF to a new file
-    gff_df.to_csv(output_file, sep='\t', index=False, header=False)
+
+
+
+
 
 def main():
     # Set up argument parsing
