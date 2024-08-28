@@ -410,7 +410,7 @@ rule signalp:
         4
     resources:
         mem_gb=4,
-        time=60
+        time=120
     shell:
         """
         module load signalp/6h
@@ -420,7 +420,7 @@ rule signalp:
 
 rule final:
     input:
-        gff=""results/prodigal/{genome}.gff",
+        gff="results/prodigal/{genome}.gff",
         kofams="results/kofams/{genome}.txt",
         cazy="results/cazy/{genome}.txt",
         pfam="results/pfam/{genome}.txt",
