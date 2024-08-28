@@ -139,6 +139,19 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, ec_file, output_f
     amr_hits['query_id'] = query_ids
     amr_df = pd.DataFrame.from_dict(amr_hits)
     amr_df = amr_df.rename(columns={'query_id': 'gene'})
+    amr_df['evalue'] = pd.to_numeric(amr_df['evalue'], errors='coerce')
+    amr_df = amr_df[amr_df['evalue'] < evalue_threshold]
+    amr_df = amr_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
+    amr_df = amr_df.rename(columns={'id': 'amr'})
+
+    # Parse VFDB
+
+    vfdb_df = pd.read_csv(vfdb_file, sep='\t', comment='#', header=None, 
+                     names=['gene', 'entry', 'identity', 'length', 'mismatches', 
+                            'gaps', 'query_start', 'query_end', 'target_start', 'target_end', 'evalue', 'bitscore'])
+    vfdb_df['evalue'] = pd.to_numeric(vfdb_df['evalue'], errors='coerce')
+    vfdb_df = vfdb_df[vfdb_df['evalue'] < evalue_threshold]
+    vfdb_df = vfdb_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
 
     #####################
     # Merge annotations #
@@ -146,6 +159,7 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, ec_file, output_f
 
     annotations = pd.merge(annotations, cazy_df[['gene', 'cazy']], on='gene', how='left')
     annotations = pd.merge(annotations, pfam_df[['gene', 'pfam', 'ec']], on='gene', how='left')
+    annotations = pd.merge(annotations, amr_df[['gene', 'amr']], on='gene', how='left')
 
     
 
