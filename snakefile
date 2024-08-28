@@ -186,7 +186,8 @@ rule prepare_pfam:
 
 checkpoint prepare_vfdb:
     output:
-        "resources/databases/vfdb/vfdb"
+        db="resources/databases/vfdb/vfdb",
+        mapping="resources/databases/vfdb/vfdb.tsv"
     params:
         jobname="pr.vfdb",
         outdir="resources/databases/vfdb/fasta/"
@@ -206,13 +207,15 @@ checkpoint prepare_vfdb:
         if [ ! -f resources/databases/vfdb/VFDB_setB_pro.fas ]; then
         wget -O resources/databases/vfdb/VFDB_setB_pro.fas.gz http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
         gunzip resources/databases/vfdb/VFDB_setB_pro.fas.gz
+        #Generate mapping file
+        cat resources/databases/vfdb/VFDB_setB_pro.fas | grep '^>' | awk '{print $1"\t"$0}' | grep -oP '^>\S+|\bVF\d{4}\b|\bVFC\d{4}\b' | paste - - - | sed 's/^>//' > {output.mapping}
         fi
 
         #Create mmseqs2 db
         if [ ! -f resources/databases/vfdb/vfdb ]; then
         module load mmseqs2/14.7e284
         mmseqs createdb resources/databases/vfdb/VFDB_setB_pro.fas resources/databases/vfdb/vfdb
-        mmseqs createindex {output} resources/databases/vfdb/tmp
+        mmseqs createindex {output.db} resources/databases/vfdb/tmp
         fi
         """
 
