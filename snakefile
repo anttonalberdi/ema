@@ -320,6 +320,8 @@ rule prepare_amr:
 
         # Decompress
         if [ ! -f resources/databases/amr/amr ]; then
+            cd resources/databases/amr/
+            rm -rf HMM
             tar -xvzf NCBIfam-AMRFinder.HMM.tar.gz
             cat HMM/*.HMM > amr
             rm -rf HMM
