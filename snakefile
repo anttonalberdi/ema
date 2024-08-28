@@ -195,7 +195,7 @@ checkpoint prepare_vfdb:
         1
     resources:
         mem_gb=16,
-        time=3
+        time=15
     shell:
         """
         # Create directory
