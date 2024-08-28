@@ -40,8 +40,7 @@ genomes, = glob_wildcards(f"resources/genomes/{{genome}}.{extension}")
 # Expand target files
 rule all:
     input:
-        expand("results/output/{genome}.tsv", genome=genomes),
-        gather_vf_fastas
+        expand("results/output/{genome}.tsv", genome=genomes)
         
 rule prepare_input:
     input:
@@ -346,7 +345,7 @@ rule pfam:
 rule vfdb:
     input:
         faa="results/prodigal/{genome}.faa",
-        db="resources/databases/vfdb/vfdb.h3p"
+        db="resources/databases/vfdb/vfdb"
     output:
         txt="results/vfdb/{genome}.txt",
         tsv="results/vfdb/{genome}.tsv"
@@ -360,8 +359,8 @@ rule vfdb:
         time=60
     shell:
         """
-        module load hmmer/3.3.2
-        hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
+        module load mmseqs2/14.7e284
+        mmseqs easy-search {input.faa} {input.db} {output.txt} resources/databases/vfdb/tmp
         """
 
 rule amr:
