@@ -38,6 +38,7 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, ec_file, output_f
     # Load mapping files #
     ######################
 
+    #PFAM to EC
     pfam_to_ec = pd.read_csv(ec_file, sep='\t', comment='#', header=0)
     pfam_to_ec = pfam_to_ec[pfam_to_ec['Type'] == 'GOLD']
     pfam_to_ec = pfam_to_ec.rename(columns={'Confidence-Score': 'confidence'})
@@ -45,6 +46,9 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, ec_file, output_f
     pfam_to_ec = pfam_to_ec.rename(columns={'EC-Number': 'ec'}, inplace=True)
     pfam_to_ec['confidence'] = pd.to_numeric(pfam_to_ec['confidence'], errors='coerce')
     pfam_to_ec = pfam_to_ec.groupby('pfam', group_keys=False).apply(select_highest_confidence)
+
+    #Entry to VF
+    entry_to_vf = pd.read_csv(vfdb_meta, sep='\t', comment='#', header=0, names=['entry', 'vf', 'vfc'])
     
     #####################
     # Parse annotations #
@@ -145,14 +149,14 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, ec_file, output_f
     amr_df = amr_df.rename(columns={'id': 'amr'})
 
     # Parse VFDB
-
     vfdb_df = pd.read_csv(vfdb_file, sep='\t', comment='#', header=None, 
                      names=['gene', 'entry', 'identity', 'length', 'mismatches', 
                             'gaps', 'query_start', 'query_end', 'target_start', 'target_end', 'evalue', 'bitscore'])
     vfdb_df['evalue'] = pd.to_numeric(vfdb_df['evalue'], errors='coerce')
     vfdb_df = vfdb_df[vfdb_df['evalue'] < evalue_threshold]
     vfdb_df = vfdb_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
-
+    vfdb_df = pd.merge(vfdb_df, entry_to_vf[['entry','vf','vfc']], on='entry', how='left')
+    
     #####################
     # Merge annotations #
     #####################
@@ -160,6 +164,7 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, ec_file, output_f
     annotations = pd.merge(annotations, cazy_df[['gene', 'cazy']], on='gene', how='left')
     annotations = pd.merge(annotations, pfam_df[['gene', 'pfam', 'ec']], on='gene', how='left')
     annotations = pd.merge(annotations, amr_df[['gene', 'amr']], on='gene', how='left')
+    annotations = pd.merge(annotations, vfdb_df[['gene', 'vf', 'vfc']], on='gene', how='left')
 
     
 
