@@ -212,18 +212,9 @@ checkpoint prepare_vfdb1:
         python workflow/scripts/split_vf.py resources/databases/vfdb/VFDB_setB_pro.fas {params.outdir}
         """
 
-def gather_from_checkpoint(wildcards):
+def gather_vfids(wildcards):
     checkpoint_output = checkpoints.prepare_vfdb1.get().output[0]
-    return glob.glob("resources/databases/vfdb/fasta/*.fasta")
-
-def get_vfids(directory, extension):
-    # Get all files matching the pattern
-    files = glob.glob(os.path.join(directory, f"*.{extension}"))
-    # Extract vfid from file names
-    vfids = {os.path.basename(file).split('.')[0] for file in files}
-    return sorted(vfids)
-
-vfids = get_vfids("resources/databases/vfdb/fasta", "fasta")
+    return glob_wildcards(f"{checkpoint_output.parent}/*.fasta").vfid
 
 rule prepare_vfdb2:
     input:
@@ -263,7 +254,7 @@ rule prepare_vfdb3:
 
 rule prepare_vfdb4:
     input:
-        expand("resources/databases/vfdb/fasta/{vfid}.hmm", vfid=vfids)
+        expand("resources/databases/vfdb/fasta/{vfid}.hmm", vfid=gather_vfids)
     output:
         "resources/databases/vfdb/vfdb"
     params:
