@@ -223,7 +223,7 @@ rule prepare_vfdb2:
     input:
         gather_vf_fastas
     output:
-        "resources/databases/vfdb/align/{vfid}.aln"
+        "resources/databases/vfdb/vfdb"
     params:
         jobname="pr.vfdb2"
     threads:
@@ -233,46 +233,17 @@ rule prepare_vfdb2:
         time=60
     shell:
         """
-        module load muscle/5.1
-        muscle -in {input} -out {output}
+        module load muscle/5.1 hmmer/3.3.2
+        for file in {input}; do
+            vfid=$(echo $file | sed -E 's|.*/||; s|\.[^.]*$||')
+            echo ${{vfid}}
+            muscle -align resources/databases/vfdb/fasta/${{vfid}}.fasta -output resources/databases/vfdb/fasta/${{vfid}}.aln
+            hmmbuild resources/databases/vfdb/fasta/${{vfid}}.hmm resources/databases/vfdb/fasta/${{vfid}}.aln
+        done
+        cat resources/databases/vfdb/fasta/*.hmm > resources/databases/vfdb/vfdb
         """
 
 rule prepare_vfdb3:
-    input:
-        "resources/databases/vfdb/align/{vfid}.aln"
-    output:
-        "resources/databases/vfdb/hmm/{vfid}.hmm"
-    params:
-        jobname="pr.vfdb3"
-    threads:
-        1
-    resources:
-        mem_gb=16,
-        time=60
-    shell:
-        """
-        module load hmmer/3.3.2
-        hmmbuild {output} {input} 
-        """
-
-rule prepare_vfdb4:
-    input:
-        expand("resources/databases/vfdb/hmm/{vfid}.hmm", vfid=gather_vf_fastas)
-    output:
-        "resources/databases/vfdb/vfdb"
-    params:
-        jobname="pr.vfdb4"
-    threads:
-        1
-    resources:
-        mem_gb=16,
-        time=60
-    shell:
-        """
-        cat {input} > {output}
-        """
-
-rule prepare_vfdb5:
     input:
         "resources/databases/vfdb/vfdb"
     output:
