@@ -208,7 +208,7 @@ checkpoint prepare_vfdb:
         wget -O resources/databases/vfdb/VFDB_setB_pro.fas.gz http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
         gunzip resources/databases/vfdb/VFDB_setB_pro.fas.gz
         #Generate mapping file
-        cat resources/databases/vfdb/VFDB_setB_pro.fas | grep '^>' | awk '{print $1"\t"$0}' | grep -oP '^>\S+|\bVF\d{4}\b|\bVFC\d{4}\b' | paste - - - | sed 's/^>//' > {output.mapping}
+        cat resources/databases/vfdb/VFDB_setB_pro.fas | grep '^>' | awk '{{print $1"\t"$0}}' | grep -oP '^>\S+|\bVF\d{4}\b|\bVFC\d{4}\b' | paste - - - | sed 's/^>//' > {output.mapping}
         fi
 
         #Create mmseqs2 db
