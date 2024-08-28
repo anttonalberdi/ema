@@ -188,7 +188,7 @@ checkpoint prepare_vfdb:
     output:
         "resources/databases/vfdb/vfdb"
     params:
-        jobname="pr.vfdb1",
+        jobname="pr.vfdb",
         outdir="resources/databases/vfdb/fasta/"
     threads:
         1
@@ -350,7 +350,7 @@ rule vfdb:
         txt="results/vfdb/{genome}.txt",
         tsv="results/vfdb/{genome}.tsv"
     params:
-        jobname="{genome}.pf",
+        jobname="{genome}.vf",
         db="resources/databases/vfdb/vfdb"
     threads:
         1
