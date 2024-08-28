@@ -10,7 +10,7 @@ import requests
 import glob
 
 # List virulence factor fasta files
-vfids, = glob_wildcards(f"resources/databases/vfdb/fasta/{vfid}.fasta")
+vfids, = glob_wildcards("resources/databases/vfdb/fasta/{vfid}.fasta")
 
 rule all:
     input:
