@@ -1,0 +1,70 @@
+######
+# Virulence factor hmm generation
+# Antton Alberdi
+# 2024/08/25
+######
+
+import os
+import re
+import requests
+import glob
+
+# List virulence factor fasta files
+vfids, = glob_wildcards(f"resources/databases/vfdb/fasta/{vfid}.fasta")
+
+rule all:
+    input:
+        "resources/databases/vfdb/vfdb"
+
+rule vf_muscle:
+    input:
+        "resources/databases/vfdb/fasta/{vfid}.fasta"
+    output:
+        "resources/databases/vfdb/fasta/{vfid}.aln"
+    params:
+        jobname="pr.vfdb1.{vfid}"
+    threads:
+        1
+    resources:
+        mem_gb=8,
+        time=10
+    shell:
+        """
+        module load muscle/5.1
+        muscle -align {input} -output {output}
+        """
+
+rule vf_hmm:
+    input:
+        "resources/databases/vfdb/fasta/{vfid}.aln"
+    output:
+        "resources/databases/vfdb/fasta/{vfid}.hmm"
+    params:
+        jobname="pr.vfdb2.{vfid}"
+    threads:
+        1
+    resources:
+        mem_gb=8,
+        time=10
+    shell:
+        """
+        module load hmmer/3.3.21
+        hmmbuild {output} {input}
+        """
+
+rule vf_hmm_merge:
+    input:
+        expand("resources/databases/vfdb/fasta/{vfid}.hmm", vfid=vfids)
+    output:
+        "resources/databases/vfdb/vfdb"
+    params:
+        jobname="pr.vfdb3"
+    threads:
+        1
+    resources:
+        mem_gb=8,
+        time=10
+    shell:
+        """
+        cat {input} > {output}
+        """
