@@ -5,18 +5,27 @@ from Bio import SearchIO
 
 def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
 
+    ##############
+    # Load genes #
+    ##############
+
+    annotations = pd.read_csv(gff_file, sep='\t', comment='#', header=None, 
+                     names=['seqid', 'source', 'type', 'start', 'end', 
+                            'score', 'strand', 'phase', 'attributes'])
+    annotations = annotations.drop(columns=['attributes', 'source', 'score', 'type', 'phase'])
+    annotations = annotations.rename(columns={'seqid': 'gene'})
+
     #####################
-    # Parse information #
+    # Parse annotations #
     #####################
     
     hmm_attribs = ['bitscore', 'evalue', 'id', 'overlap_num', 'region_num']
 
     # Parse KOFAMS
-    filename = kofams_file
     kofams_hits = defaultdict(list)
     query_ids = []
     
-    with open(filename) as handle:
+    with open(kofams_file) as handle:
         for queryresult in SearchIO.parse(handle, 'hmmer3-tab'):
             query_id = queryresult.id  # Capture the query result id
             query_ids.extend([query_id] * len(queryresult.hits))  # Extend query_ids list to match the number of hits
@@ -29,13 +38,13 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     
     kofams_hits['query_id'] = query_ids
     kofams_df = pd.DataFrame.from_dict(kofams_hits)
+    kofams_df = kofams_df.rename(columns={'query_id': 'gene'})
     
     # Parse PFAM
-    filename = pfam_file
     pfam_hits = defaultdict(list)
     query_ids = []
     
-    with open(filename) as handle:
+    with open(pfam_file) as handle:
         for queryresult in SearchIO.parse(handle, 'hmmer3-tab'):
             query_id = queryresult.id  # Capture the query result id
             query_ids.extend([query_id] * len(queryresult.hits))  # Extend query_ids list to match the number of hits
@@ -48,13 +57,13 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     
     pfam_hits['query_id'] = query_ids
     pfam_df = pd.DataFrame.from_dict(pfam_hits)
-
+    pfam_df = pfam_df.rename(columns={'query_id': 'gene'})
+    
     # Parse CAZY
-    filename = cazy_file
     cazy_hits = defaultdict(list)
     query_ids = []
     
-    with open(filename) as handle:
+    with open(cazy_file) as handle:
         for queryresult in SearchIO.parse(handle, 'hmmer3-tab'):
             query_id = queryresult.id  # Capture the query result id
             query_ids.extend([query_id] * len(queryresult.hits))  # Extend query_ids list to match the number of hits
@@ -67,13 +76,13 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     
     cazy_hits['query_id'] = query_ids
     cazy_df = pd.DataFrame.from_dict(cazy_hits)
+    cazy_df = cazy_df.rename(columns={'query_id': 'gene'})
 
     # Parse AMR
-    filename = amr_file
     amr_hits = defaultdict(list)
     query_ids = []
     
-    with open(filename) as handle:
+    with open(amr_file) as handle:
         for queryresult in SearchIO.parse(handle, 'hmmer3-tab'):
             query_id = queryresult.id  # Capture the query result id
             query_ids.extend([query_id] * len(queryresult.hits))  # Extend query_ids list to match the number of hits
@@ -86,7 +95,7 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     
     amr_hits['query_id'] = query_ids
     amr_df = pd.DataFrame.from_dict(amr_hits)
-
+    amr_df = amr_df.rename(columns={'query_id': 'gene'})
 
     
     
