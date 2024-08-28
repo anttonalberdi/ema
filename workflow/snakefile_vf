@@ -52,7 +52,7 @@ rule vf_hmm:
         time=10
     shell:
         """
-        module load hmmer/3.3.21
+        module load hmmer/3.3.2
         hmmbuild {output} {input}
         """
 
