@@ -33,7 +33,7 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     # Parse annotations #
     #####################
     
-    hmm_attribs = ['bitscore', 'evalue', 'id', 'overlap_num', 'region_num']
+    hmm_attribs = ['accession', 'bitscore', 'evalue', 'id', 'overlap_num', 'region_num']
     evalue_threshold=0.001
     
     # Parse KOFAMS
@@ -73,6 +73,10 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     pfam_hits['query_id'] = query_ids
     pfam_df = pd.DataFrame.from_dict(pfam_hits)
     pfam_df = pfam_df.rename(columns={'query_id': 'gene'})
+    pfam_df['evalue'] = pd.to_numeric(pfam_df['evalue'], errors='coerce')
+    pfam_df = pfam_df[pfam_df['evalue'] < evalue_threshold]
+    pfam_df = pfam_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
+    pfam_df = pfam_df.rename(columns={'accession': 'pfam'})
     
     # Parse CAZY
     cazy_hits = defaultdict(list)
@@ -122,6 +126,7 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     #####################
 
     annotations = pd.merge(annotations, cazy_df[['gene', 'cazy']], on='gene', how='left')
+    annotations = pd.merge(annotations, pfam_df[['gene', 'pfam']], on='gene', how='left')
 
     
 
