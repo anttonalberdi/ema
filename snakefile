@@ -363,7 +363,7 @@ rule vfdb:
     shell:
         """
         module load mmseqs2/14.7e284
-        mmseqs easy-search {input.faa} {input.db} {output.txt} resources/databases/vfdb/tmp
+        mmseqs easy-search {input.faa} {input.db} {output.txt} results/vfdb/{genome}
         """
 
 rule amr:
