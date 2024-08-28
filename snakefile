@@ -273,6 +273,7 @@ rule prepare_amr:
 ####   Run pipeline   #### 
 ##########################
 
+# Predict genes
 rule prodigal:
     input:
         "results/input/{genome}.fna"
@@ -293,6 +294,7 @@ rule prodigal:
         prodigal -i {input} -d {output.fna} -a {output.faa} -o {output.gff} -f gff
         """
 
+# Annotate KEGG orthologs
 rule kofams:
     input:
         faa="results/prodigal/{genome}.faa",
@@ -314,6 +316,7 @@ rule kofams:
         hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
         """
 
+# Annotate carbohydrate active enzymes (CAZYs)
 rule cazy:
     input:
         faa="results/prodigal/{genome}.faa",
@@ -335,6 +338,7 @@ rule cazy:
         hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
         """
 
+# Annotate protein families and assign enzyme commission codes (EC)
 rule pfam:
     input:
         faa="results/prodigal/{genome}.faa",
@@ -356,6 +360,7 @@ rule pfam:
         hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
         """
 
+# Annotate virulence factors
 rule vfdb:
     input:
         faa="results/prodigal/{genome}.faa",
@@ -376,6 +381,7 @@ rule vfdb:
         mmseqs easy-search {input.faa} {input.db} {output.txt} results/vfdb/{wildcards.genome}
         """
 
+# Annotate antimicrobial resistance genes
 rule amr:
     input:
         faa="results/prodigal/{genome}.faa",
@@ -397,6 +403,7 @@ rule amr:
         hmmscan -o {output.txt} --tblout {output.tsv} --noali {params.db} {input.faa}
         """
 
+# Annotate signal peptides
 rule signalp:
     input:
         "results/prodigal/{genome}.faa"
@@ -417,6 +424,7 @@ rule signalp:
         cat {params.outputdir}/output.gff3  | cut -f1,3,6 | awk -F' # |[ \t]+' '!/^#/ {{print $1, $6, $7}}' OFS='\t' > {output}
         """
 
+# Filter and merge all annotations
 rule final:
     input:
         gff="results/prodigal/{genome}.gff",
