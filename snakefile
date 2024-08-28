@@ -279,7 +279,8 @@ rule prodigal:
         "results/input/{genome}.fna"
     output:
         fna="results/prodigal/{genome}.fna",
-        faa="results/prodigal/{genome}.faa"
+        faa="results/prodigal/{genome}.faa",
+        gff="results/prodigal/{genome}.gff"
     params:
         jobname="{genome}.pr",
     threads:
@@ -290,7 +291,7 @@ rule prodigal:
     shell:
         """
         module load prodigal/2.6.3
-        prodigal -i {input} -d {output.fna} -a {output.faa}
+        prodigal -i {input} -d {output.fna} -a {output.faa} -o {output.gff} -f gff
         """
 
 rule kofams:
@@ -419,6 +420,7 @@ rule signalp:
 
 rule final:
     input:
+        gff=""results/prodigal/{genome}.gff",
         kofams="results/kofams/{genome}.txt",
         cazy="results/cazy/{genome}.txt",
         pfam="results/pfam/{genome}.txt",
