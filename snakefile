@@ -241,7 +241,7 @@ rule prepare_vfdb2:
         #    hmmbuild resources/databases/vfdb/fasta/${{vfid}}.hmm resources/databases/vfdb/fasta/${{vfid}}.aln
         #done
         #cat resources/databases/vfdb/fasta/*.hmm > resources/databases/vfdb/vfdb
-        snakemake -s workflow/snakefile_vf -d workflow -j 20 --cluster 'sbatch -o log/{params.jobname}-slurm-%j.out --mem {resources.mem_gb}G --time {resources.time} -c {threads} --job-name={params.jobname} -v'   --use-conda --conda-frontend mamba --conda-prefix conda --latency-wait 600
+        snakemake -s workflow/snakefile_vf -d workflow -j 20 --use-conda --conda-frontend mamba --conda-prefix conda --latency-wait 600
         """
 
 rule prepare_vfdb3:
