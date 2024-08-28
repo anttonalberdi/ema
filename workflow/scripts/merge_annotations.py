@@ -8,6 +8,11 @@ def select_lowest_evalue(group):
     # Sort the group by 'evalue' and take the first row of the sorted group
     return group.sort_values(by='evalue').head(1)
 
+# Function to select the row with the lowest evalue or randomly if there is a tie
+def select_highest_confidence(group):
+    # Sort the group by 'evalue' and take the first row of the sorted group
+    return group.sort_values(by='confidence', ascending=False).head(1)
+
 # Function to extract the part after the underscore in ID and append it to seqid
 def append_suffix_to_seqid(row):
     # Extract the part after 'ID=' and before the first ';'
@@ -16,7 +21,7 @@ def append_suffix_to_seqid(row):
     suffix = id_part.split('_')[-1]
     return f"{row['seqid']}_{suffix}"
 
-def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
+def process_files(gff_file, kofams_file, pfam_file, cazy_file, ec_file, output_file):
 
     ##############
     # Load genes #
@@ -29,6 +34,18 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     annotations = annotations.drop(columns=['attributes', 'source', 'score', 'type', 'phase'])
     annotations = annotations.rename(columns={'seqid': 'gene'})
 
+    ######################
+    # Load mapping files #
+    ######################
+
+    pfam_to_ec = pd.read_csv(ec_file, sep='\t', comment='#', header=0)
+    pfam_to_ec = pfam_to_ec[pfam_to_ec['Type'] == 'GOLD']
+    pfam_to_ec = pfam_to_ec.rename(columns={'Confidence-Score': 'confidence'})
+    pfam_to_ec = pfam_to_ec.rename(columns={'Pfam-Domain': 'pfam'})
+    pfam_to_ec = pfam_to_ec.rename(columns={'EC-Number': 'ec'}, inplace=True)
+    pfam_to_ec['confidence'] = pd.to_numeric(pfam_to_ec['confidence'], errors='coerce')
+    pfam_to_ec = pfam_to_ec.groupby('pfam', group_keys=False).apply(select_highest_confidence)
+    
     #####################
     # Parse annotations #
     #####################
@@ -73,10 +90,12 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     pfam_hits['query_id'] = query_ids
     pfam_df = pd.DataFrame.from_dict(pfam_hits)
     pfam_df = pfam_df.rename(columns={'query_id': 'gene'})
+    pfam_df = pfam_df.rename(columns={'accession': 'pfam'})
+    pfam_df['pfam'] = pfam_df['pfam'].str.split('.').str[0]
     pfam_df['evalue'] = pd.to_numeric(pfam_df['evalue'], errors='coerce')
     pfam_df = pfam_df[pfam_df['evalue'] < evalue_threshold]
     pfam_df = pfam_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
-    pfam_df = pfam_df.rename(columns={'accession': 'pfam'})
+    pfam_df = pd.merge(pfam_df, pfam_to_ec[['pfam', 'ec']], on='pfam', how='left')
     
     # Parse CAZY
     cazy_hits = defaultdict(list)
@@ -126,7 +145,7 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, output_file):
     #####################
 
     annotations = pd.merge(annotations, cazy_df[['gene', 'cazy']], on='gene', how='left')
-    annotations = pd.merge(annotations, pfam_df[['gene', 'pfam']], on='gene', how='left')
+    annotations = pd.merge(annotations, pfam_df[['gene', 'pfam', 'ec']], on='gene', how='left')
 
     
 
