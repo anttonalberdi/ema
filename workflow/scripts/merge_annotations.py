@@ -86,6 +86,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     kofams_df['evalue'] = pd.to_numeric(kofams_df['evalue'], errors='coerce')
     kofams_df = kofams_df[kofams_df['evalue'] < evalue_threshold]
     kofams_df = kofams_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
+    kofams_df = kofams_df.rename(columns={'id': 'kegg'})
 
     # Parse PFAM
     pfam_hits = defaultdict(list)
@@ -177,8 +178,9 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     # Merge annotations #
     #####################
 
-    annotations = pd.merge(annotations, cazy_df[['gene', 'cazy']], on='gene', how='left')
+    annotations = pd.merge(annotations, kofams_df[['gene', 'kegg']], on='gene', how='left')
     annotations = pd.merge(annotations, pfam_df[['gene', 'pfam', 'ec']], on='gene', how='left')
+    annotations = pd.merge(annotations, cazy_df[['gene', 'cazy']], on='gene', how='left')
     annotations = pd.merge(annotations, amr_df[['gene', 'amr']], on='gene', how='left')
     annotations = pd.merge(annotations, vfdb_df[['gene', 'vf', 'vfc']], on='gene', how='left')
     annotations = pd.merge(annotations, signalp_df[['gene', 'signalp']], on='gene', how='left')
