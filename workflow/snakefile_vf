@@ -30,8 +30,12 @@ rule vf_muscle:
         time=10
     shell:
         """
-        module load muscle/5.1
-        muscle -align {input} -output {output}
+        if [ $(grep -o ">" filename | wc -l) -gt 1 ]; then
+            module load muscle/5.1
+            muscle -align {input} -output {output}
+        else
+            cat {input} > {output}
+        fi
         """
 
 rule vf_hmm:
