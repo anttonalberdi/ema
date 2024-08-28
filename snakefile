@@ -233,14 +233,15 @@ rule prepare_vfdb2:
         time=60
     shell:
         """
-        module load muscle/5.1 hmmer/3.3.2
-        for file in {input}; do
-            vfid=$(echo $file | sed -E 's|.*/||; s|\.[^.]*$||')
-            echo ${{vfid}}
-            muscle -align resources/databases/vfdb/fasta/${{vfid}}.fasta -output resources/databases/vfdb/fasta/${{vfid}}.aln
-            hmmbuild resources/databases/vfdb/fasta/${{vfid}}.hmm resources/databases/vfdb/fasta/${{vfid}}.aln
-        done
-        cat resources/databases/vfdb/fasta/*.hmm > resources/databases/vfdb/vfdb
+        #module load muscle/5.1 hmmer/3.3.2
+        #for file in {input}; do
+        #    vfid=$(echo $file | sed -E 's|.*/||; s|\.[^.]*$||')
+        #    echo ${{vfid}}
+        #    muscle -align resources/databases/vfdb/fasta/${{vfid}}.fasta -output resources/databases/vfdb/fasta/${{vfid}}.aln
+        #    hmmbuild resources/databases/vfdb/fasta/${{vfid}}.hmm resources/databases/vfdb/fasta/${{vfid}}.aln
+        #done
+        #cat resources/databases/vfdb/fasta/*.hmm > resources/databases/vfdb/vfdb
+        snakemake -s workflow/snakefile_vf -j 20 --cluster 'sbatch -o log/{params.jobname}-slurm-%j.out --mem {resources.mem_gb}G --time {resources.time} -c {threads} --job-name={params.jobname} -v'   --use-conda --conda-frontend mamba --conda-prefix conda --latency-wait 600
         """
 
 rule prepare_vfdb3:
