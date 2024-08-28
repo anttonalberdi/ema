@@ -29,7 +29,7 @@ def append_suffix_to_seqid(row):
 # Main function #
 #################
 
-def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb_file, vf_file, amr_file, output_file):
+def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb_file, vf_file, amr_file, signalp_file, output_file):
 
     ##############
     # Load genes #
@@ -167,6 +167,11 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     vfdb_df = vfdb_df[vfdb_df['evalue'] < evalue_threshold]
     vfdb_df = vfdb_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
     vfdb_df = pd.merge(vfdb_df, entry_to_vf[['entry','vf','vfc']], on='entry', how='left')
+
+    # Parse SIGNALP
+    signalp_df = pd.read_csv(signalp_file, sep='\t', comment='#', header=None, names=['gene', 'signalp', 'confidence'])
+    signalp_df['confidence'] = pd.to_numeric(signalp_df['confidence'], errors='coerce')
+    signalp_df = signalp_df.groupby('gene', group_keys=False).apply(select_highest_confidence)
     
     #####################
     # Merge annotations #
@@ -176,6 +181,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     annotations = pd.merge(annotations, pfam_df[['gene', 'pfam', 'ec']], on='gene', how='left')
     annotations = pd.merge(annotations, amr_df[['gene', 'amr']], on='gene', how='left')
     annotations = pd.merge(annotations, vfdb_df[['gene', 'vf', 'vfc']], on='gene', how='left')
+    annotations = pd.merge(annotations, signalp_df[['gene', 'signalp']], on='gene', how='left')
 
     # Output the final DataFrame to the output file
     annotations.to_csv(output_file, sep='\t', index=False)
@@ -191,13 +197,14 @@ def main():
     parser.add_argument('-vfdb', required=True, type=str, help='Path to the VFDB file')
     parser.add_argument('-vf', required=True, type=str, help='Path to the VF file')
     parser.add_argument('-amr', required=True, type=str, help='Path to the AMR file')
+    parser.add_argument('-signalp', required=True, type=str, help='Path to the SIGNALP file')
     parser.add_argument('-o', required=True, type=str, help='Path to the OUTPUT file')
     
     # Parse the arguments
     args = parser.parse_args()
     
     # Process the files
-    merge_annotations(args.gff, args.kofams, args.pfam, args.cazy, args.ec, args.vfdb, args.vf, args.amr, args.o)
+    merge_annotations(args.gff, args.kofams, args.pfam, args.cazy, args.ec, args.vfdb, args.vf, args.amr, args.signalp, args.o)
 
 if __name__ == '__main__':
     main()
