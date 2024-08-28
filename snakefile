@@ -84,7 +84,7 @@ rule prepare_kofams:
     shell:
         """
         # Create directory
-        if [ ! -f resources/databases/kofams ]; then
+        if [ ! -d resources/databases/kofams ]; then
             mkdir resources/databases/kofams
         fi
 
