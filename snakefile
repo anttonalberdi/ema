@@ -88,14 +88,16 @@ rule prepare_kofams:
             mkdir resources/databases/kofams
         fi
 
+        # Change to working directory
+        cd resources/databases/kofams/
+
         # Download
-        if [ ! -f resources/databases/kofams/profiles.tar.gz ]; then
-            cd resources/databases/kofams/
+        if [ ! -f profiles.tar.gz ]; then
             wget https://www.genome.jp/ftp/db/kofam/profiles.tar.gz
         fi
 
         # Decompress
-        if [ ! -f resources/databases/kofams/kofams ]; then
+        if [ ! -f kofams ]; then
             tar -xvzf profiles.tar.gz
             cat profiles/*hmm > kofams
             rm -rf profiles
@@ -128,9 +130,11 @@ rule prepare_cazy:
             mkdir resources/databases/cazy
         fi
 
+        # Change to working directory
+        cd resources/databases/cazy/
+
         # Download
-        if [ ! -f resources/databases/cazy/cazy ]; then
-            cd resources/databases/cazy/
+        if [ ! -f cazy ]; then
             wget https://bcb.unl.edu/dbCAN2/download/dbCAN-HMMdb-V13.txt
             mv dbCAN-HMMdb-V13.txt cazy
         fi
@@ -166,14 +170,14 @@ rule prepare_pfam:
         cd resources/databases/pfam/
 
         # Download pfams
-        if [ ! -f resources/databases/pfam/pfam ]; then
+        if [ ! -f pfam ]; then
             wget https://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
             gunzip Pfam-A.hmm.gz
             mv Pfam-A.hmm pfam
         fi
 
         # Download pfam-ec mapping
-        if [ ! -f resources/databases/pfam/pfam ]; then
+        if [ ! -f pfam_ec.tsv ]; then
             wget https://ecdm.loria.fr/data/EC-Pfam_calculated_associations_Extended.csv
             mv EC-Pfam_calculated_associations_Extended.csv pfam_ec.tsv
         fi
@@ -204,17 +208,20 @@ checkpoint prepare_vfdb:
             mkdir resources/databases/vfdb
         fi
 
+        # Move to working directory
+        cd resources/databases/vfdb
+
         # Download
-        if [ ! -f resources/databases/vfdb/VFDB_setB_pro.fas ]; then
-        wget -O resources/databases/vfdb/VFDB_setB_pro.fas.gz http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
-        gunzip resources/databases/vfdb/VFDB_setB_pro.fas.gz
+        if [ ! -f VFDB_setB_pro.fas ]; then
+        wget http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
+        gunzip VFDB_setB_pro.fas.gz
         fi
 
         #Generate mapping file
-        cat resources/databases/vfdb/VFDB_setB_pro.fas | grep '^>' | awk '{{print $1"\t"$0}}' | grep -oP '^>\S+|\bVF\d{{4}}\b|\bVFC\d{{4}}\b' | paste - - - | sed 's/^>//' > {output.mapping}
+        cat VFDB_setB_pro.fas | grep '^>' | awk '{{print $1"\t"$0}}' | grep -oP '^>\S+|\bVF\d{{4}}\b|\bVFC\d{{4}}\b' | paste - - - | sed 's/^>//' > {output.mapping}
 
         #Create mmseqs2 db
-        if [ ! -f resources/databases/vfdb/vfdb ]; then
+        if [ ! -f vfdb ]; then
         module load mmseqs2/14.7e284
         mmseqs createdb resources/databases/vfdb/VFDB_setB_pro.fas resources/databases/vfdb/vfdb
         mmseqs createindex {output.db} resources/databases/vfdb/tmp
@@ -241,14 +248,16 @@ rule prepare_amr:
             mkdir resources/databases/amr
         fi
 
+        # Move to working directory
+        cd resources/databases/amr/
+
         # Download
-        if [ ! -f resources/databases/amr/NCBIfam-AMRFinder.HMM.tar.gz ]; then
-            cd resources/databases/amr/
+        if [ ! -f NCBIfam-AMRFinder.HMM.tar.gz ]; then
             wget https://ftp.ncbi.nlm.nih.gov/hmm/NCBIfam-AMRFinder/latest/NCBIfam-AMRFinder.HMM.tar.gz
         fi
 
         # Decompress
-        if [ ! -f resources/databases/amr/amr ]; then
+        if [ ! -f amr ]; then
             tar -xvzf NCBIfam-AMRFinder.HMM.tar.gz
             cat HMM/*.HMM > amr
             rm -rf HMM
