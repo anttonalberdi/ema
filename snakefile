@@ -350,8 +350,7 @@ rule vfdb:
         faa="results/prodigal/{genome}.faa",
         db="resources/databases/vfdb/vfdb"
     output:
-        txt="results/vfdb/{genome}.txt",
-        tsv="results/vfdb/{genome}.tsv"
+        txt="results/vfdb/{genome}.txt"
     params:
         jobname="{genome}.vf",
         db="resources/databases/vfdb/vfdb"
