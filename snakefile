@@ -223,8 +223,8 @@ checkpoint prepare_vfdb:
         #Create mmseqs2 db
         if [ ! -f vfdb ]; then
         module load mmseqs2/14.7e284
-        mmseqs createdb resources/databases/vfdb/VFDB_setB_pro.fas resources/databases/vfdb/vfdb
-        mmseqs createindex {output.db} resources/databases/vfdb/tmp
+        mmseqs createdb VFDB_setB_pro.fas vfdb
+        mmseqs createindex {output.db} tmp
         fi
         """
 
