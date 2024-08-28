@@ -151,7 +151,8 @@ rule prepare_pfam:
         h3f="resources/databases/pfam/pfam.h3f",
         h3i="resources/databases/pfam/pfam.h3i",
         h3m="resources/databases/pfam/pfam.h3m",
-        h3p="resources/databases/pfam/pfam.h3p"
+        h3p="resources/databases/pfam/pfam.h3p",
+        ec="resources/databases/pfam/pfam_ec.tsv"
     params:
         jobname="pr.pfam"
     threads:
@@ -179,7 +180,7 @@ rule prepare_pfam:
         # Download pfam-ec mapping
         if [ ! -f pfam_ec.tsv ]; then
             wget https://ecdm.loria.fr/data/EC-Pfam_calculated_associations_Extended.csv
-            mv EC-Pfam_calculated_associations_Extended.csv pfam_ec.tsv
+            mv EC-Pfam_calculated_associations_Extended.csv {output.ec}
         fi
 
         # Build index
@@ -424,7 +425,9 @@ rule final:
         kofams="results/kofams/{genome}.txt",
         cazy="results/cazy/{genome}.txt",
         pfam="results/pfam/{genome}.txt",
+        ec="resources/databases/pfam/pfam_ec.tsv",
         vfdb="results/vfdb/{genome}.txt",
+        vfmap="resources/databases/vfdb/vfdb.tsv",
         amr="results/amr/{genome}.txt",
         sp="results/signalp/{genome}.txt"
     output:
