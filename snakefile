@@ -186,8 +186,7 @@ rule prepare_pfam:
 
 checkpoint prepare_vfdb1:
     output:
-        fasta="resources/databases/vfdb/fasta/{vfid}.fasta",
-        placeholder="resources/databases/vfdb/done"
+        fasta="resources/databases/vfdb/fasta/{vfid}.fasta"
     params:
         jobname="pr.vfdb1",
         outdir="resources/databases/vfdb/fasta/"
@@ -211,7 +210,7 @@ checkpoint prepare_vfdb1:
 
         #Split fasta
         python workflow/scripts/split_vf.py resources/databases/vfdb/VFDB_setB_pro.fas {params.outdir}
-        touch {output.placeholder}
+        touch resources/databases/vfdb/done
         """
 
 def gather_vfids(wildcards):
@@ -220,8 +219,7 @@ def gather_vfids(wildcards):
 
 rule prepare_vfdb2:
     input:
-        fastas="resources/databases/vfdb/fasta/{vfid}.fasta",
-        placeholder="resources/databases/vfdb/done"
+        fastas="resources/databases/vfdb/fasta/{vfid}.fasta"
     output:
         "resources/databases/vfdb/fasta/{vfid}.aln"
     params:
