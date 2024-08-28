@@ -37,4 +37,4 @@ if __name__ == "__main__":
 
     input_file = sys.argv[1]
     output_dir = sys.argv[2]
-    split_vf(input_file, output_dir)
+    split_fasta_by_vf(input_file, output_dir)
