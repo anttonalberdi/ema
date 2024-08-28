@@ -37,10 +37,17 @@ extension = detect_extension("resources/genomes/",valid_extensions)
 # List genome and target wildcards
 genomes, = glob_wildcards(f"resources/genomes/{{genome}}.{extension}")
 
+# Gather vf fastas
+def gather_vf_fastas(wildcards):
+    ck_output = checkpoints.prepare_vfdb1.get(**wildcards).output[0]
+    vfids, = glob_wildcards(os.path.join(ck_output, "{vfid}.fasta"))
+    return expand(os.path.join(ck_output, "{vfid}.fasta"), vfid=vfids)
+
 # Expand target files
 rule all:
     input:
-        expand("results/output/{genome}.tsv", genome=genomes)
+        expand("results/output/{genome}.tsv", genome=genomes),
+        gather_vf_fastas
         
 rule prepare_input:
     input:
@@ -186,7 +193,7 @@ rule prepare_pfam:
 
 checkpoint prepare_vfdb1:
     output:
-        fasta="resources/databases/vfdb/fasta/{vfid}.fasta"
+        directory("resources/databases/vfdb/fasta/")
     params:
         jobname="pr.vfdb1",
         outdir="resources/databases/vfdb/fasta/"
@@ -194,7 +201,7 @@ checkpoint prepare_vfdb1:
         1
     resources:
         mem_gb=16,
-        time=5
+        time=3
     shell:
         """
         # Create directory
@@ -209,19 +216,14 @@ checkpoint prepare_vfdb1:
         fi
 
         #Split fasta
-        python workflow/scripts/split_vf.py resources/databases/vfdb/VFDB_setB_pro.fas {params.outdir}
-        touch resources/databases/vfdb/done
+        python workflow/scripts/split_vf.py resources/databases/vfdb/VFDB_setB_pro.fas {output}
         """
-
-def gather_vfids(wildcards):
-    checkpoint_output = checkpoints.prepare_vfdb1.get().output[0]
-    return glob_wildcards(f"{checkpoint_output.parent}/*.fasta").vfid
 
 rule prepare_vfdb2:
     input:
-        fastas="resources/databases/vfdb/fasta/{vfid}.fasta"
+        gather_vf_fastas
     output:
-        "resources/databases/vfdb/fasta/{vfid}.aln"
+        "resources/databases/vfdb/align/{vfid}.aln"
     params:
         jobname="pr.vfdb2"
     threads:
@@ -232,14 +234,14 @@ rule prepare_vfdb2:
     shell:
         """
         module load muscle/5.1
-        muscle -in {input.fastas} -out {output}
+        muscle -in {input} -out {output}
         """
 
 rule prepare_vfdb3:
     input:
-        "resources/databases/vfdb/fasta/{vfid}.aln"
+        "resources/databases/vfdb/align/{vfid}.aln"
     output:
-        "resources/databases/vfdb/fasta/{vfid}.hmm"
+        "resources/databases/vfdb/hmm/{vfid}.hmm"
     params:
         jobname="pr.vfdb3"
     threads:
@@ -255,7 +257,7 @@ rule prepare_vfdb3:
 
 rule prepare_vfdb4:
     input:
-        expand("resources/databases/vfdb/fasta/{vfid}.hmm", vfid=gather_vfids)
+        expand("resources/databases/vfdb/hmm/{vfid}.hmm", vfid=gather_vf_fastas)
     output:
         "resources/databases/vfdb/vfdb"
     params:
