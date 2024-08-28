@@ -167,24 +167,22 @@ rule prepare_pfam:
             mkdir resources/databases/pfam
         fi
 
-        # Move to working directory
-        cd resources/databases/pfam/
-
         # Download pfams
-        if [ ! -f pfam ]; then
-            wget https://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
-            gunzip Pfam-A.hmm.gz
-            mv Pfam-A.hmm pfam
+        if [ ! -f resources/databases/pfam/pfam ]; then
+            wget -O resources/databases/pfam/Pfam-A.hmm.gz https://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
+            gunzip resources/databases/pfam/Pfam-A.hmm.gz
+            mv resources/databases/pfam/Pfam-A.hmm resources/databases/pfam/pfam
         fi
 
         # Download pfam-ec mapping
-        if [ ! -f pfam_ec.tsv ]; then
-            wget https://ecdm.loria.fr/data/EC-Pfam_calculated_associations_Extended.csv
-            mv EC-Pfam_calculated_associations_Extended.csv {output.ec}
+        if [ ! -f resources/databases/pfam/pfam_ec.tsv ]; then
+            wget -O resources/databases/pfam/EC-Pfam_calculated_associations_Extended.csv https://ecdm.loria.fr/data/EC-Pfam_calculated_associations_Extended.csv
+            mv resources/databases/pfam/EC-Pfam_calculated_associations_Extended.csv {output.ec}
         fi
 
         # Build index
         if [ ! -f {output.h3p} ]; then
+            cd resources/databases/pfam/
             module load hmmer/3.3.2
             hmmpress -f pfam
         fi
@@ -213,18 +211,18 @@ checkpoint prepare_vfdb:
         cd resources/databases/vfdb
 
         # Download
-        if [ ! -f VFDB_setB_pro.fas ]; then
-        wget http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
-        gunzip VFDB_setB_pro.fas.gz
+        if [ ! -f resources/databases/vfdb/VFDB_setB_pro.fas ]; then
+        wget -O resources/databases/vfdb/VFDB_setB_pro.fas.gz http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
+        gunzip resources/databases/vfdb/VFDB_setB_pro.fas.gz
         fi
 
         #Generate mapping file
-        cat VFDB_setB_pro.fas | grep '^>' | awk '{{print $1"\t"$0}}' | grep -oP '^>\S+|\bVF\d{{4}}\b|\bVFC\d{{4}}\b' | paste - - - | sed 's/^>//' > {output.mapping}
+        cat resources/databases/vfdb/VFDB_setB_pro.fas | grep '^>' | awk '{{print $1"\t"$0}}' | grep -oP '^>\S+|\bVF\d{{4}}\b|\bVFC\d{{4}}\b' | paste - - - | sed 's/^>//' > {output.mapping}
 
         #Create mmseqs2 db
         if [ ! -f vfdb ]; then
         module load mmseqs2/14.7e284
-        mmseqs createdb VFDB_setB_pro.fas vfdb
+        mmseqs createdb resources/databases/vfdb/VFDB_setB_pro.fas {output.db}
         mmseqs createindex {output.db} tmp
         fi
         """
