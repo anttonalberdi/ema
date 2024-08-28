@@ -3,6 +3,10 @@ import pandas as pd
 from collections import defaultdict
 from Bio import SearchIO
 
+#######################
+# Auxiliary functions #
+#######################
+
 # Function to select the row with the lowest evalue or randomly if there is a tie
 def select_lowest_evalue(group):
     # Sort the group by 'evalue' and take the first row of the sorted group
@@ -21,7 +25,11 @@ def append_suffix_to_seqid(row):
     suffix = id_part.split('_')[-1]
     return f"{row['seqid']}_{suffix}"
 
-def process_files(gff_file, kofams_file, pfam_file, cazy_file, ec_file, output_file):
+#################
+# Main function #
+#################
+
+def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb_file, vf_file, amr_file, output_file):
 
     ##############
     # Load genes #
@@ -48,7 +56,7 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, ec_file, output_f
     pfam_to_ec = pfam_to_ec.groupby('pfam', group_keys=False).apply(select_highest_confidence)
 
     #Entry to VF
-    entry_to_vf = pd.read_csv(vfdb_meta, sep='\t', comment='#', header=0, names=['entry', 'vf', 'vfc'])
+    entry_to_vf = pd.read_csv(vf_file, sep='\t', comment='#', header=0, names=['entry', 'vf', 'vfc'])
     
     #####################
     # Parse annotations #
@@ -75,7 +83,10 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, ec_file, output_f
     kofams_hits['query_id'] = query_ids
     kofams_df = pd.DataFrame.from_dict(kofams_hits)
     kofams_df = kofams_df.rename(columns={'query_id': 'gene'})
-    
+    kofams_df['evalue'] = pd.to_numeric(kofams_df['evalue'], errors='coerce')
+    kofams_df = kofams_df[kofams_df['evalue'] < evalue_threshold]
+    kofams_df = kofams_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
+
     # Parse PFAM
     pfam_hits = defaultdict(list)
     query_ids = []
@@ -166,24 +177,27 @@ def process_files(gff_file, kofams_file, pfam_file, cazy_file, ec_file, output_f
     annotations = pd.merge(annotations, amr_df[['gene', 'amr']], on='gene', how='left')
     annotations = pd.merge(annotations, vfdb_df[['gene', 'vf', 'vfc']], on='gene', how='left')
 
-    
-
-
-
-
+    # Output the final DataFrame to the output file
+    annotations.to_csv(output_file, sep='\t', index=False)
 
 def main():
     # Set up argument parsing
     parser = argparse.ArgumentParser(description='Compare GFF and PFAM files and output the results.')
     parser.add_argument('-gff', required=True, type=str, help='Path to the GFF file')
+    parser.add_argument('-kofams', required=True, type=str, help='Path to the KOFAMS file')
     parser.add_argument('-pfam', required=True, type=str, help='Path to the PFAM file')
-    parser.add_argument('-o', required=True, type=str, help='Path to the output file')
+    parser.add_argument('-ec', required=True, type=str, help='Path to the EC file')
+    parser.add_argument('-cazy', required=True, type=str, help='Path to the CAZY file')
+    parser.add_argument('-vfdb', required=True, type=str, help='Path to the VFDB file')
+    parser.add_argument('-vf', required=True, type=str, help='Path to the VF file')
+    parser.add_argument('-amr', required=True, type=str, help='Path to the AMR file')
+    parser.add_argument('-o', required=True, type=str, help='Path to the OUTPUT file')
     
     # Parse the arguments
     args = parser.parse_args()
     
     # Process the files
-    process_files(args.gff, args.pfam, args.o)
+    merge_annotations(args.gff, args.kofams, args.pfam, args.cazy, args.ec, args.vfdb, args.vf, args.amr, args.o)
 
 if __name__ == '__main__':
     main()
