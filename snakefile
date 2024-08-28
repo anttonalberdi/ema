@@ -191,9 +191,9 @@ rule prepare_pfam:
         fi
         """
 
-checkpoint prepare_vfdb1:
+checkpoint prepare_vfdb:
     output:
-        directory("resources/databases/vfdb/fasta/")
+        "resources/databases/vfdb/vfdb"
     params:
         jobname="pr.vfdb1",
         outdir="resources/databases/vfdb/fasta/"
@@ -215,55 +215,11 @@ checkpoint prepare_vfdb1:
         gunzip resources/databases/vfdb/VFDB_setB_pro.fas.gz
         fi
 
-        #Split fasta
-        python workflow/scripts/split_vf.py resources/databases/vfdb/VFDB_setB_pro.fas {output}
-        """
-
-rule prepare_vfdb2:
-    input:
-        gather_vf_fastas
-    output:
-        "resources/databases/vfdb/vfdb"
-    params:
-        jobname="pr.vfdb2"
-    threads:
-        1
-    resources:
-        mem_gb=16,
-        time=60
-    shell:
-        """
-        #module load muscle/5.1 hmmer/3.3.2
-        #for file in {input}; do
-        #    vfid=$(echo $file | sed -E 's|.*/||; s|\.[^.]*$||')
-        #    echo ${{vfid}}
-        #    muscle -align resources/databases/vfdb/fasta/${{vfid}}.fasta -output resources/databases/vfdb/fasta/${{vfid}}.aln
-        #    hmmbuild resources/databases/vfdb/fasta/${{vfid}}.hmm resources/databases/vfdb/fasta/${{vfid}}.aln
-        #done
-        #cat resources/databases/vfdb/fasta/*.hmm > resources/databases/vfdb/vfdb
-        snakemake -s workflow/snakefile_vf -d workflow -j 20 --use-conda --conda-frontend mamba --conda-prefix conda --latency-wait 600
-        """
-
-rule prepare_vfdb3:
-    input:
-        "resources/databases/vfdb/vfdb"
-    output:
-        h3f="resources/databases/vfdb/vfdb.h3f",
-        h3i="resources/databases/vfdb/vfdb.h3i",
-        h3m="resources/databases/vfdb/vfdb.h3m",
-        h3p="resources/databases/vfdb/vfdb.h3p"
-    params:
-        jobname="pr.vfdb5"
-    threads:
-        1
-    resources:
-        mem_gb=16,
-        time=60
-    shell:
-        """
-        if [ ! -f {output.h3p} ]; then
-            module load hmmer/3.3.2
-            hmmpress -f {input}
+        #Create mmseqs2 db
+        if [ ! -f resources/databases/vfdb/vfdb ]; then
+        module load mmseqs2/14.7e284
+        mmseqs createdb resources/databases/vfdb/VFDB_setB_pro.fas resources/databases/vfdb/vfdb
+        mmseqs createindex {output} resources/databases/vfdb/tmp
         fi
         """
 
