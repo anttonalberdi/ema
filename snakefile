@@ -433,7 +433,7 @@ rule final:
     output:
         "results/output/{genome}.tsv"
     params:
-        jobname="allgenomes.fi"
+        jobname="merge_annotations"
     threads:
         1
     resources:
@@ -441,5 +441,14 @@ rule final:
         time=5
     shell:
         """
-        cat {input} > {output} 
+        python workflow/scripts/merge_annotations.py \
+            -gff {input.gff} \
+            -kofams {input.kofams} \
+            -pfam {input.pfam} \
+            -ec {input.ec} \
+            -cazy {input.cazy} \
+            -vfdb {input.vfdb} \
+            -vf {input.vf} \
+            -amr {input.amr} \
+            -o {output}
         """
