@@ -186,7 +186,8 @@ rule prepare_pfam:
 
 checkpoint prepare_vfdb1:
     output:
-        "resources/databases/vfdb/fasta/{vfid}.fasta"
+        fasta="resources/databases/vfdb/fasta/{vfid}.fasta",
+        placeholder="resources/databases/vfdb/done"
     params:
         jobname="pr.vfdb1",
         outdir="resources/databases/vfdb/fasta/"
@@ -194,7 +195,7 @@ checkpoint prepare_vfdb1:
         1
     resources:
         mem_gb=16,
-        time=60
+        time=5
     shell:
         """
         # Create directory
@@ -210,6 +211,7 @@ checkpoint prepare_vfdb1:
 
         #Split fasta
         python workflow/scripts/split_vf.py resources/databases/vfdb/VFDB_setB_pro.fas {params.outdir}
+        touch {output.placeholder}
         """
 
 def gather_vfids(wildcards):
@@ -218,7 +220,8 @@ def gather_vfids(wildcards):
 
 rule prepare_vfdb2:
     input:
-        "resources/databases/vfdb/fasta/{vfid}.fasta"
+        fastas="resources/databases/vfdb/fasta/{vfid}.fasta",
+        placeholder="resources/databases/vfdb/done"
     output:
         "resources/databases/vfdb/fasta/{vfid}.aln"
     params:
@@ -231,7 +234,7 @@ rule prepare_vfdb2:
     shell:
         """
         module load muscle/5.1
-        muscle -in {input} -out {output}
+        muscle -in {input.fastas} -out {output}
         """
 
 rule prepare_vfdb3:
@@ -320,8 +323,6 @@ rule prepare_amr:
 
         # Decompress
         if [ ! -f resources/databases/amr/amr ]; then
-            cd resources/databases/amr/
-            rm -rf HMM
             tar -xvzf NCBIfam-AMRFinder.HMM.tar.gz
             cat HMM/*.HMM > amr
             rm -rf HMM
