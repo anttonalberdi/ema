@@ -252,9 +252,6 @@ rule prepare_amr:
             mkdir resources/databases/amr
         fi
 
-        # Move to working directory
-        cd 
-
         # Download and decompress
         if [ ! -f resources/databases/amr/amr ]; then
             wget -O resources/databases/amr/NCBIfam-AMRFinder.HMM.tar.gz https://ftp.ncbi.nlm.nih.gov/hmm/NCBIfam-AMRFinder/latest/NCBIfam-AMRFinder.HMM.tar.gz
