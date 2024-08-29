@@ -53,7 +53,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     pfam_to_ec = pfam_to_ec.rename(columns={'Pfam-Domain': 'pfam'})
     pfam_to_ec = pfam_to_ec.rename(columns={'EC-Number': 'ec'})
     pfam_to_ec['confidence'] = pd.to_numeric(pfam_to_ec['confidence'], errors='coerce')
-    pfam_to_ec = pfam_to_ec.groupby('pfam', group_keys=False).apply(select_highest_confidence, include_groups=False)
+    pfam_to_ec = pfam_to_ec.groupby('pfam', group_keys=False)[['pfam','ec','confidence']].apply(select_highest_confidence, include_groups=False)
 
     #Entry to VF
     entry_to_vf = pd.read_csv(vf_file, sep='\t', comment='#', header=0, names=['entry', 'vf', 'vfc'])
@@ -89,8 +89,8 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     kofams_df = kofams_df.rename(columns={'query_id': 'gene'})
     kofams_df['evalue'] = pd.to_numeric(kofams_df['evalue'], errors='coerce')
     kofams_df = kofams_df[kofams_df['evalue'] < evalue_threshold]
-    kofams_df = kofams_df.groupby('gene', group_keys=False).apply(select_lowest_evalue, include_groups=False)
     kofams_df = kofams_df.rename(columns={'id': 'kegg'})
+    pfam_df = pfam_df.groupby('gene', group_keys=False)[['gene','kegg','evalue']].apply(select_lowest_evalue, include_groups=False)
 
     # Parse PFAM
     pfam_hits = defaultdict(list)
@@ -114,7 +114,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     pfam_df['pfam'] = pfam_df['pfam'].str.split('.').str[0]
     pfam_df['evalue'] = pd.to_numeric(pfam_df['evalue'], errors='coerce')
     pfam_df = pfam_df[pfam_df['evalue'] < evalue_threshold]
-    pfam_df = pfam_df.groupby('gene', group_keys=False).apply(select_lowest_evalue, include_groups=False)
+    pfam_df = pfam_df.groupby('gene', group_keys=False)[['gene','pfam','evalue']].apply(select_lowest_evalue, include_groups=False)
     pfam_df = pd.merge(pfam_df, pfam_to_ec[['pfam', 'ec']], on='pfam', how='left')
     
     # Parse CAZY
@@ -161,8 +161,8 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     amr_df = amr_df.rename(columns={'query_id': 'gene'})
     amr_df['evalue'] = pd.to_numeric(amr_df['evalue'], errors='coerce')
     amr_df = amr_df[amr_df['evalue'] < evalue_threshold]
-    amr_df = amr_df.groupby('gene', group_keys=False).apply(select_lowest_evalue, include_groups=False)
     amr_df = amr_df.rename(columns={'id': 'amr'})
+    amr_df = amr_df.groupby('gene', group_keys=False)[['gene','amr','accession']].apply(select_lowest_evalue, include_groups=False)
     amr_df = pd.merge(amr_df, amr_to_class[['accession','subtype','class','subclass']], on='accession', how='left')
 
     # Parse VFDB
@@ -171,13 +171,13 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
                             'gaps', 'query_start', 'query_end', 'target_start', 'target_end', 'evalue', 'bitscore'])
     vfdb_df['evalue'] = pd.to_numeric(vfdb_df['evalue'], errors='coerce')
     vfdb_df = vfdb_df[vfdb_df['evalue'] < evalue_threshold]
-    vfdb_df = vfdb_df.groupby('gene', group_keys=False).apply(select_lowest_evalue, include_groups=False)
+    vfdb_df = vfdb_df.groupby('gene', group_keys=False)[['gene','entry','evalue']].apply(select_lowest_evalue, include_groups=False)    
     vfdb_df = pd.merge(vfdb_df, entry_to_vf[['entry','vf','vfc']], on='entry', how='left')
 
     # Parse SIGNALP
     signalp_df = pd.read_csv(signalp_file, sep='\t', comment='#', header=None, names=['gene', 'signalp', 'confidence'])
     signalp_df['confidence'] = pd.to_numeric(signalp_df['confidence'], errors='coerce')
-    signalp_df = signalp_df.groupby('gene', group_keys=False).apply(select_highest_confidence)
+    signalp_df = signalp_df.groupby('gene', group_keys=False)[['gene','signalp','confidence']].apply(select_highest_confidence)
     
     #####################
     # Merge annotations #
