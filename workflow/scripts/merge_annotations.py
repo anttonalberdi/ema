@@ -59,7 +59,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     entry_to_vf = pd.read_csv(vf_file, sep='\t', comment='#', header=0, names=['entry', 'vf', 'vfc'])
 
     #AMR to class
-    amr_to_class = pd.read_csv(amr_file, sep='\t', comment='#', header=0)
+    amr_to_class = pd.read_csv(amr_file, sep='\t', header=0)
     amr_to_class = amr_to_class.rename(columns={'#hmm_accession': 'accession'})
     
     #####################
@@ -138,8 +138,8 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     cazy_df['id'] = cazy_df['id'].str.replace('.hmm', '', regex=False)
     cazy_df['evalue'] = pd.to_numeric(cazy_df['evalue'], errors='coerce')
     cazy_df = cazy_df[cazy_df['evalue'] < evalue_threshold]
-    cazy_df = cazy_df.groupby('gene', group_keys=False).apply(select_lowest_evalue, include_groups=False)
     cazy_df = cazy_df.rename(columns={'id': 'cazy'})
+    cazy_df = cazy_df.groupby('gene', group_keys=False)[['gene','cazy','evalue']].apply(select_lowest_evalue, include_groups=False)
 
     # Parse AMR
     amr_hits = defaultdict(list)
@@ -162,7 +162,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     amr_df['evalue'] = pd.to_numeric(amr_df['evalue'], errors='coerce')
     amr_df = amr_df[amr_df['evalue'] < evalue_threshold]
     amr_df = amr_df.rename(columns={'id': 'amr'})
-    amr_df = amr_df.groupby('gene', group_keys=False)[['gene','amr','accession']].apply(select_lowest_evalue, include_groups=False)
+    amr_df = amr_df.groupby('gene', group_keys=False)[['gene','amr','accession','evalue']].apply(select_lowest_evalue, include_groups=False)
     amr_df = pd.merge(amr_df, amr_to_class[['accession','subtype','class','subclass']], on='accession', how='left')
 
     # Parse VFDB
