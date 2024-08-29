@@ -90,7 +90,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     kofams_df['evalue'] = pd.to_numeric(kofams_df['evalue'], errors='coerce')
     kofams_df = kofams_df[kofams_df['evalue'] < evalue_threshold]
     kofams_df = kofams_df.rename(columns={'id': 'kegg'})
-    pfam_df = pfam_df.groupby('gene', group_keys=False)[['gene','kegg','evalue']].apply(select_lowest_evalue, include_groups=False)
+    kofams_df = kofams_df.groupby('gene', group_keys=False)[['gene','kegg','evalue']].apply(select_lowest_evalue, include_groups=False)
 
     # Parse PFAM
     pfam_hits = defaultdict(list)
