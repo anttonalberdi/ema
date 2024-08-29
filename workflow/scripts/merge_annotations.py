@@ -29,7 +29,7 @@ def append_suffix_to_seqid(row):
 # Main function #
 #################
 
-def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb_file, vf_file, amr_file, signalp_file, output_file):
+def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb_file, vf_file, amrdb_file, amr_file, signalp_file, output_file):
 
     ##############
     # Load genes #
@@ -53,10 +53,14 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     pfam_to_ec = pfam_to_ec.rename(columns={'Pfam-Domain': 'pfam'})
     pfam_to_ec = pfam_to_ec.rename(columns={'EC-Number': 'ec'})
     pfam_to_ec['confidence'] = pd.to_numeric(pfam_to_ec['confidence'], errors='coerce')
-    pfam_to_ec = pfam_to_ec.groupby('pfam', group_keys=False).apply(select_highest_confidence)
+    pfam_to_ec = pfam_to_ec.groupby('pfam', group_keys=False).apply(select_highest_confidence, include_groups=False)
 
     #Entry to VF
     entry_to_vf = pd.read_csv(vf_file, sep='\t', comment='#', header=0, names=['entry', 'vf', 'vfc'])
+
+    #AMR to class
+    amr_to_class = pd.read_csv(amr_file, sep='\t', comment='#', header=0)
+    amr_to_class = amr_to_class.rename(columns={'#hmm_accession': 'accession'})
     
     #####################
     # Parse annotations #
@@ -85,7 +89,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     kofams_df = kofams_df.rename(columns={'query_id': 'gene'})
     kofams_df['evalue'] = pd.to_numeric(kofams_df['evalue'], errors='coerce')
     kofams_df = kofams_df[kofams_df['evalue'] < evalue_threshold]
-    kofams_df = kofams_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
+    kofams_df = kofams_df.groupby('gene', group_keys=False).apply(select_lowest_evalue, include_groups=False)
     kofams_df = kofams_df.rename(columns={'id': 'kegg'})
 
     # Parse PFAM
@@ -110,7 +114,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     pfam_df['pfam'] = pfam_df['pfam'].str.split('.').str[0]
     pfam_df['evalue'] = pd.to_numeric(pfam_df['evalue'], errors='coerce')
     pfam_df = pfam_df[pfam_df['evalue'] < evalue_threshold]
-    pfam_df = pfam_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
+    pfam_df = pfam_df.groupby('gene', group_keys=False).apply(select_lowest_evalue, include_groups=False)
     pfam_df = pd.merge(pfam_df, pfam_to_ec[['pfam', 'ec']], on='pfam', how='left')
     
     # Parse CAZY
@@ -134,14 +138,14 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     cazy_df['id'] = cazy_df['id'].str.replace('.hmm', '', regex=False)
     cazy_df['evalue'] = pd.to_numeric(cazy_df['evalue'], errors='coerce')
     cazy_df = cazy_df[cazy_df['evalue'] < evalue_threshold]
-    cazy_df = cazy_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
+    cazy_df = cazy_df.groupby('gene', group_keys=False).apply(select_lowest_evalue, include_groups=False)
     cazy_df = cazy_df.rename(columns={'id': 'cazy'})
 
     # Parse AMR
     amr_hits = defaultdict(list)
     query_ids = []
     
-    with open(amr_file) as handle:
+    with open(amrdb_file) as handle:
         for queryresult in SearchIO.parse(handle, 'hmmer3-tab'):
             query_id = queryresult.id  # Capture the query result id
             query_ids.extend([query_id] * len(queryresult.hits))  # Extend query_ids list to match the number of hits
@@ -157,8 +161,9 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     amr_df = amr_df.rename(columns={'query_id': 'gene'})
     amr_df['evalue'] = pd.to_numeric(amr_df['evalue'], errors='coerce')
     amr_df = amr_df[amr_df['evalue'] < evalue_threshold]
-    amr_df = amr_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
+    amr_df = amr_df.groupby('gene', group_keys=False).apply(select_lowest_evalue, include_groups=False)
     amr_df = amr_df.rename(columns={'id': 'amr'})
+    amr_df = pd.merge(amr_df, amr_to_class[['accession','subtype','class','subclass']], on='accession', how='left')
 
     # Parse VFDB
     vfdb_df = pd.read_csv(vfdb_file, sep='\t', comment='#', header=None, 
@@ -166,7 +171,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
                             'gaps', 'query_start', 'query_end', 'target_start', 'target_end', 'evalue', 'bitscore'])
     vfdb_df['evalue'] = pd.to_numeric(vfdb_df['evalue'], errors='coerce')
     vfdb_df = vfdb_df[vfdb_df['evalue'] < evalue_threshold]
-    vfdb_df = vfdb_df.groupby('gene', group_keys=False).apply(select_lowest_evalue)
+    vfdb_df = vfdb_df.groupby('gene', group_keys=False).apply(select_lowest_evalue, include_groups=False)
     vfdb_df = pd.merge(vfdb_df, entry_to_vf[['entry','vf','vfc']], on='entry', how='left')
 
     # Parse SIGNALP
@@ -198,6 +203,7 @@ def main():
     parser.add_argument('-cazy', required=True, type=str, help='Path to the CAZY file')
     parser.add_argument('-vfdb', required=True, type=str, help='Path to the VFDB file')
     parser.add_argument('-vf', required=True, type=str, help='Path to the VF file')
+    parser.add_argument('-amrdb', required=True, type=str, help='Path to the AMRDB file')
     parser.add_argument('-amr', required=True, type=str, help='Path to the AMR file')
     parser.add_argument('-signalp', required=True, type=str, help='Path to the SIGNALP file')
     parser.add_argument('-o', required=True, type=str, help='Path to the OUTPUT file')
@@ -206,7 +212,7 @@ def main():
     args = parser.parse_args()
     
     # Process the files
-    merge_annotations(args.gff, args.kofams, args.pfam, args.cazy, args.ec, args.vfdb, args.vf, args.amr, args.signalp, args.o)
+    merge_annotations(args.gff, args.kofams, args.pfam, args.cazy, args.ec, args.vfdb, args.vf, args.amrdb, args.amr, args.signalp, args.o)
 
 if __name__ == '__main__':
     main()
