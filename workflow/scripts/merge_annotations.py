@@ -29,7 +29,7 @@ def append_suffix_to_seqid(row):
 # Main function #
 #################
 
-def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb_file, vf_file, amrdb_file, amr_file, signalp_file, output_file):
+def merge_annotations(gff_file, kofamsdb_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb_file, vf_file, amrdb_file, amr_file, signalp_file, output_file):
 
     ##############
     # Load genes #
@@ -61,7 +61,32 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     #AMR to class
     amr_to_class = pd.read_csv(amr_file, sep='\t', header=0)
     amr_to_class = amr_to_class.rename(columns={'#hmm_accession': 'accession'})
-    
+
+    #KEGG hierarchy
+    kegg_json=json.load(open(kofams_file))
+    kegg_df = []
+    for main in kegg_json['children']:
+        for broad in main['children']:
+            for sub in broad['children']:
+                for gn in sub.get('children', [None]):
+                    if gn:
+                        # Extract the relevant parts of the 'name' field
+                        name = gn['name']
+                        kegg = name.split(' ')[0] if len(name.split(' ')) > 0 else ''
+                        description_and_ec = ' '.join(name.split(' ')[1:])
+                        
+                        # Split the description and EC number
+                        description_parts = description_and_ec.split(' [')
+                        description = description_parts[0]
+                        ec = description_parts[1][:-1] if len(description_parts) > 1 else ''  # Remove the trailing ']'
+                        
+                        # Append data to the list
+                        kegg_df.append([kegg, description, ec, sub['name'], broad['name'], main['name']])
+                    else:
+                        # Handle terms with no children if necessary
+                        pass
+    kegg_hierachy = pd.DataFrame(kegg_df, columns=['kegg', 'Description', 'ec', 'Subcategory', 'Broad Category', 'Main Category'])
+
     #####################
     # Parse annotations #
     #####################
@@ -73,7 +98,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     kofams_hits = defaultdict(list)
     query_ids = []
     
-    with open(kofams_file) as handle:
+    with open(kofamsdb_file) as handle:
         for queryresult in SearchIO.parse(handle, 'hmmer3-tab'):
             query_id = queryresult.id  # Capture the query result id
             query_ids.extend([query_id] * len(queryresult.hits))  # Extend query_ids list to match the number of hits
@@ -90,7 +115,9 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     kofams_df['evalue'] = pd.to_numeric(kofams_df['evalue'], errors='coerce')
     kofams_df = kofams_df[kofams_df['evalue'] < evalue_threshold]
     kofams_df = kofams_df.rename(columns={'id': 'kegg'})
-    kofams_df = kofams_df.groupby('gene', group_keys=False)[['gene','kegg','evalue']].apply(select_lowest_evalue, include_groups=False)
+    kofams_df = pd.merge(kofams_df, kegg_hierachy[['kegg', 'ec']], on='kegg', how='left')
+    kofams_df = kofams_df.groupby('gene', group_keys=False)[['gene','kegg','ec','evalue']].apply(select_lowest_evalue, include_groups=False)
+    kofams_df['ec'] = kofams_df['ec'].str.replace('EC:', '', regex=False)
 
     # Parse PFAM
     pfam_hits = defaultdict(list)
@@ -185,8 +212,15 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     # Merge annotations #
     #####################
 
-    annotations = pd.merge(annotations, kofams_df[['gene', 'kegg']], on='gene', how='left')
-    annotations = pd.merge(annotations, pfam_df[['gene', 'pfam', 'ec']], on='gene', how='left')
+    annotations = pd.merge(annotations, kofams_df[['gene', 'kegg', 'ec']], on='gene', how='left')
+    # Perform the merge, adding 'ec' from pfam_df as 'pfam_ec' to avoid conflict
+    annotations = pd.merge(annotations, pfam_df[['gene', 'pfam', 'ec']], on='gene', how='left', suffixes=('', '_pfam'))
+    # Update 'ec' column in annotations only where it is empty
+    annotations['ec'] = merged.apply(
+        lambda row: row['ec_pfam'] if pd.isna(row['ec']) or row['ec'] == '' else row['ec'],
+        axis=1)
+    # Drop the temporary 'ec_pfam' column
+    annotations.drop(columns=['ec_pfam'], inplace=True)
     annotations = pd.merge(annotations, cazy_df[['gene', 'cazy']], on='gene', how='left')
     annotations = pd.merge(annotations, amr_df[['gene','resistance_type','resistance_target']], on='gene', how='left')
     annotations = pd.merge(annotations, vfdb_df[['gene', 'vf', 'vfc']], on='gene', how='left')
@@ -199,6 +233,7 @@ def main():
     # Set up argument parsing
     parser = argparse.ArgumentParser(description='Compare GFF and PFAM files and output the results.')
     parser.add_argument('-gff', required=True, type=str, help='Path to the GFF file')
+    parser.add_argument('-kofamsdb', required=True, type=str, help='Path to the KOFAMSDB file')
     parser.add_argument('-kofams', required=True, type=str, help='Path to the KOFAMS file')
     parser.add_argument('-pfam', required=True, type=str, help='Path to the PFAM file')
     parser.add_argument('-ec', required=True, type=str, help='Path to the EC file')
@@ -214,7 +249,7 @@ def main():
     args = parser.parse_args()
     
     # Process the files
-    merge_annotations(args.gff, args.kofams, args.pfam, args.cazy, args.ec, args.vfdb, args.vf, args.amrdb, args.amr, args.signalp, args.o)
+    merge_annotations(args.gff, args.kofamsdb, args.kofams, args.pfam, args.cazy, args.ec, args.vfdb, args.vf, args.amrdb, args.amr, args.signalp, args.o)
 
 if __name__ == '__main__':
     main()
