@@ -56,7 +56,7 @@ def merge_annotations(gff_file, kofamsdb_file, kofams_file, pfam_file, cazy_file
     pfam_to_ec = pfam_to_ec.groupby('pfam', group_keys=False)[['pfam','ec','confidence']].apply(select_highest_confidence, include_groups=False)
 
     #Entry to VF
-    entry_to_vf = pd.read_csv(vf_file, sep='\t', comment='#', header=0, names=['entry', 'vf', 'vfc'])
+    entry_to_vf = pd.read_csv(vf_file, sep='\t', comment='#', header=0)
 
     #AMR to class
     amr_to_class = pd.read_csv(amr_file, sep='\t', header=0)
@@ -201,7 +201,7 @@ def merge_annotations(gff_file, kofamsdb_file, kofams_file, pfam_file, cazy_file
     vfdb_df['evalue'] = pd.to_numeric(vfdb_df['evalue'], errors='coerce')
     vfdb_df = vfdb_df[vfdb_df['evalue'] < evalue_threshold]
     vfdb_df = vfdb_df.groupby('gene', group_keys=False)[['gene','entry','evalue']].apply(select_lowest_evalue, include_groups=False)    
-    vfdb_df = pd.merge(vfdb_df, entry_to_vf[['entry','vf','vfc']], on='entry', how='left')
+    vfdb_df = pd.merge(vfdb_df, entry_to_vf[['entry','vf','vfc','vf_type']], on='entry', how='left')
 
     # Parse SIGNALP
     signalp_df = pd.read_csv(signalp_file, sep='\t', comment='#', header=None, names=['gene', 'signalp', 'confidence'])
@@ -223,7 +223,7 @@ def merge_annotations(gff_file, kofamsdb_file, kofams_file, pfam_file, cazy_file
     annotations.drop(columns=['ec_pfam'], inplace=True)
     annotations = pd.merge(annotations, cazy_df[['gene', 'cazy']], on='gene', how='left')
     annotations = pd.merge(annotations, amr_df[['gene','resistance_type','resistance_target']], on='gene', how='left')
-    annotations = pd.merge(annotations, vfdb_df[['gene', 'vf', 'vfc']], on='gene', how='left')
+    annotations = pd.merge(annotations, vfdb_df[['gene', 'vf', 'vf_type']], on='gene', how='left')
     annotations = pd.merge(annotations, signalp_df[['gene', 'signalp']], on='gene', how='left')
 
     # Output the final DataFrame to the output file
