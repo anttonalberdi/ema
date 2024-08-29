@@ -51,7 +51,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     pfam_to_ec = pfam_to_ec[pfam_to_ec['Type'] == 'GOLD']
     pfam_to_ec = pfam_to_ec.rename(columns={'Confidence-Score': 'confidence'})
     pfam_to_ec = pfam_to_ec.rename(columns={'Pfam-Domain': 'pfam'})
-    pfam_to_ec = pfam_to_ec.rename(columns={'EC-Number': 'ec'}, inplace=True)
+    pfam_to_ec = pfam_to_ec.rename(columns={'EC-Number': 'ec'})
     pfam_to_ec['confidence'] = pd.to_numeric(pfam_to_ec['confidence'], errors='coerce')
     pfam_to_ec = pfam_to_ec.groupby('pfam', group_keys=False).apply(select_highest_confidence)
 
