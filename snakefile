@@ -190,11 +190,11 @@ rule prepare_pfam:
 
 rule prepare_vfdb:
     output:
-        db="resources/databases/vfdb/vfdb",
+        db="resources/databases/vfdb/vfdb/vfdb.idx",
         mapping="resources/databases/vfdb/vfdb.tsv"
     params:
         jobname="pr.vfdb",
-        outdir="resources/databases/vfdb/fasta/"
+        db="resources/databases/vfdb/vfdb",
     threads:
         1
     resources:
@@ -221,8 +221,8 @@ d            mkdir resources/databases/vfdb
         #Create mmseqs2 db
         if [ ! -f {output.db} ]; then
         module load mmseqs2/14.7e284
-        mmseqs createdb resources/databases/vfdb/VFDB_setB_pro.fas {output.db}
-        mmseqs createindex {output.db} tmp
+        mmseqs createdb resources/databases/vfdb/VFDB_setB_pro.fas {params.db}
+        mmseqs createindex {params.db} tmp
         fi
         """
 
@@ -363,9 +363,9 @@ rule pfam:
 rule vfdb:
     input:
         faa="results/prodigal/{genome}.faa",
-        db="resources/databases/vfdb/vfdb"
+        db="resources/databases/vfdb/vfdb/vfdb.idx"
     output:
-        txt="results/vfdb/{genome}.txt"
+        "results/vfdb/{genome}.txt"
     params:
         jobname="{genome}.vf",
         db="resources/databases/vfdb/vfdb"
@@ -377,7 +377,7 @@ rule vfdb:
     shell:
         """
         module load mmseqs2/14.7e284
-        mmseqs easy-search {input.faa} {input.db} {output.txt} results/vfdb/{wildcards.genome}
+        mmseqs easy-search {input.faa} {params.db} {output} results/vfdb/{wildcards.genome}
         """
 
 # Annotate antimicrobial resistance genes
