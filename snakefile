@@ -190,7 +190,7 @@ rule prepare_pfam:
 
 rule prepare_vfdb:
     output:
-        db="resources/databases/vfdb/vfdb/vfdb.idx",
+        db="resources/databases/vfdb/vfdb.idx",
         mapping="resources/databases/vfdb/vfdb.tsv"
     params:
         jobname="pr.vfdb",
@@ -363,7 +363,7 @@ rule pfam:
 rule vfdb:
     input:
         faa="results/prodigal/{genome}.faa",
-        db="resources/databases/vfdb/vfdb/vfdb.idx"
+        db="resources/databases/vfdb/vfdb.idx"
     output:
         "results/vfdb/{genome}.txt"
     params:
@@ -457,5 +457,6 @@ rule final:
             -vfdb {input.vfdb} \
             -vf {input.vf} \
             -amr {input.amr} \
+            -signalp {input.sp} \
             -o {output}
         """
