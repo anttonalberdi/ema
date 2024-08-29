@@ -427,13 +427,13 @@ rule signalp:
 rule final:
     input:
         gff="results/prodigal/{genome}.gff",
-        kofams="results/kofams/{genome}.txt",
-        cazy="results/cazy/{genome}.txt",
-        pfam="results/pfam/{genome}.txt",
+        kofams="results/kofams/{genome}.tsv",
+        cazy="results/cazy/{genome}.tsv",
+        pfam="results/pfam/{genome}.tsv",
         ec="resources/databases/pfam/pfam_ec.tsv",
         vfdb="results/vfdb/{genome}.txt",
         vf="resources/databases/vfdb/vfdb.tsv",
-        amr="results/amr/{genome}.txt",
+        amr="results/amr/{genome}.tsv",
         sp="results/signalp/{genome}.txt"
     output:
         "results/output/{genome}.tsv"
