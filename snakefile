@@ -40,7 +40,7 @@ genomes, = glob_wildcards(f"resources/genomes/{{genome}}.{extension}")
 # Expand target files
 rule all:
     input:
-        expand("results/output/{genome}.tsv", genome=genomes)
+        expand("results/final/{genome}.tsv", genome=genomes)
         
 rule prepare_input:
     input:
