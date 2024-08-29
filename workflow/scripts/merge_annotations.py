@@ -2,6 +2,7 @@ import argparse
 import pandas as pd
 from collections import defaultdict
 from Bio import SearchIO
+import json
 
 #######################
 # Auxiliary functions #
