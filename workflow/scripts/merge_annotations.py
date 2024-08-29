@@ -186,7 +186,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     annotations = pd.merge(annotations, kofams_df[['gene', 'kegg']], on='gene', how='left')
     annotations = pd.merge(annotations, pfam_df[['gene', 'pfam', 'ec']], on='gene', how='left')
     annotations = pd.merge(annotations, cazy_df[['gene', 'cazy']], on='gene', how='left')
-    annotations = pd.merge(annotations, amr_df[['gene', 'amr']], on='gene', how='left')
+    annotations = pd.merge(annotations, amr_df[['gene','subtype','class','subclass']], on='gene', how='left')
     annotations = pd.merge(annotations, vfdb_df[['gene', 'vf', 'vfc']], on='gene', how='left')
     annotations = pd.merge(annotations, signalp_df[['gene', 'signalp']], on='gene', how='left')
 
