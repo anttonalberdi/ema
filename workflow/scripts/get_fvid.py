@@ -14,16 +14,21 @@ def get_fvid(input_file, output_file):
                 first_word = line.split()[0].lstrip('>')
                 
                 # Use regex to find matches for VF or VFC patterns
-                matches = re.findall(r'\bVF\d{4}\b|\bVFC\d{4}\b', line)
-                if matches:
-                    # Store the first word and matches, exclude the full line
-                    records.append([first_word] + matches)
+                vf_matches = re.findall(r'\bVF\d{4}\b', line)
+                vfc_matches = re.findall(r'\bVFC\d{4}\b', line)
+                
+                # Extract the text between ") - " and "(VFC"
+                match = re.search(r'\) - (.*?)(?:\(VFC|$)', line)
+                description = match.group(1).strip() if match else ''
+                
+                # Append the extracted data to the records list
+                records.append([first_word] + vf_matches + vfc_matches + [description])
 
     # Convert records to a DataFrame for easier handling
-    df = pd.DataFrame(records)
+    df = pd.DataFrame(records, columns=['entry', 'vf', 'vfc', 'vf_type'])
 
     # Write the DataFrame to the output file, without an index and tab-separated
-    df.to_csv(output_file, sep='\t', header=False, index=False)
+    df.to_csv(output_file, sep='\t', header=True, index=False)
 
 if __name__ == "__main__":
     # Check if the correct number of arguments is provided
