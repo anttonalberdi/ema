@@ -10,14 +10,14 @@ def get_fvid(input_file, output_file):
     with open(input_file, 'r') as f:
         for line in f:
             if line.startswith('>'):
-                # Extract the whole line and the first word
-                first_word = line.split()[0]
+                # Extract the first word (e.g., VFG037170(gb|WP_001081754))
+                first_word = line.split()[0].lstrip('>')
                 
                 # Use regex to find matches for VF or VFC patterns
-                matches = re.findall(r'^>\S+|\bVF\d{4}\b|\bVFC\d{4}\b', line)
+                matches = re.findall(r'\bVF\d{4}\b|\bVFC\d{4}\b', line)
                 if matches:
-                    # Store the first word and matches
-                    records.append([first_word.lstrip('>')] + matches)
+                    # Store the first word and matches, exclude the full line
+                    records.append([first_word] + matches)
 
     # Convert records to a DataFrame for easier handling
     df = pd.DataFrame(records)
