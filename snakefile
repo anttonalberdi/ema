@@ -233,7 +233,8 @@ rule prepare_amr:
         h3f="resources/databases/amr/amr.h3f",
         h3i="resources/databases/amr/amr.h3i",
         h3m="resources/databases/amr/amr.h3m",
-        h3p="resources/databases/amr/amr.h3p"
+        h3p="resources/databases/amr/amr.h3p",
+        tsv="resources/databases/amr/amr.tsv"
     params:
         jobname="pr.amr"
     threads:
@@ -261,6 +262,11 @@ rule prepare_amr:
             tar -xvzf NCBIfam-AMRFinder.HMM.tar.gz
             cat HMM/*.HMM > amr
             rm -rf HMM
+        fi
+
+        # Download metadata
+        if [ ! -f {output.tsv} ]; then
+            wget -O {output.tsv} https://ftp.ncbi.nlm.nih.gov/hmm/NCBIfam-AMRFinder/latest/NCBIfam-AMRFinder.tsv
         fi
 
         # Build index
@@ -435,7 +441,8 @@ rule final:
         ec="resources/databases/pfam/pfam_ec.tsv",
         vfdb="results/vfdb/{genome}.txt",
         vf="resources/databases/vfdb/vfdb.tsv",
-        amr="results/amr/{genome}.tsv",
+        amrdb="results/amr/{genome}.tsv",
+        amr="resources/databases/amr/amr.tsv",
         sp="results/signalp/{genome}.txt"
     output:
         "results/final/{genome}.tsv"
@@ -458,6 +465,7 @@ rule final:
             -cazy {input.cazy} \
             -vfdb {input.vfdb} \
             -vf {input.vf} \
+            -amrdb {input.amrdb} \
             -amr {input.amr} \
             -signalp {input.sp} \
             -o {output}
