@@ -217,7 +217,7 @@ def merge_annotations(gff_file, kofamsdb_file, kofams_file, pfam_file, cazy_file
     # Perform the merge, adding 'ec' from pfam_df as 'pfam_ec' to avoid conflict
     annotations = pd.merge(annotations, pfam_df[['gene', 'pfam', 'ec']], on='gene', how='left', suffixes=('', '_pfam'))
     # Update 'ec' column in annotations only where it is empty
-    annotations['ec'] = merged.apply(
+    annotations['ec'] = annotations.apply(
         lambda row: row['ec_pfam'] if pd.isna(row['ec']) or row['ec'] == '' else row['ec'],
         axis=1)
     # Drop the temporary 'ec_pfam' column
