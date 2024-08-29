@@ -250,17 +250,13 @@ rule prepare_amr:
         fi
 
         # Move to working directory
-        cd resources/databases/amr/
+        cd 
 
-        # Download
-        if [ ! -f NCBIfam-AMRFinder.HMM.tar.gz ]; then
-            wget https://ftp.ncbi.nlm.nih.gov/hmm/NCBIfam-AMRFinder/latest/NCBIfam-AMRFinder.HMM.tar.gz
-        fi
-
-        # Decompress
-        if [ ! -f amr ]; then
-            tar -xvzf NCBIfam-AMRFinder.HMM.tar.gz
-            cat HMM/*.HMM > amr
+        # Download and decompress
+        if [ ! -f resources/databases/amr/amr ]; then
+            wget -O resources/databases/amr/NCBIfam-AMRFinder.HMM.tar.gz https://ftp.ncbi.nlm.nih.gov/hmm/NCBIfam-AMRFinder/latest/NCBIfam-AMRFinder.HMM.tar.gz
+            tar -xvzf resources/databases/amr/NCBIfam-AMRFinder.HMM.tar.gz -C resources/databases/amr
+            cat resources/databases/amr/HMM/*.HMM > resources/databases/amr/amr
             rm -rf HMM
         fi
 
@@ -272,7 +268,7 @@ rule prepare_amr:
         # Build index
         if [ ! -f {output.h3p} ]; then
             module load hmmer/3.3.2
-            hmmpress -f amr
+            hmmpress -f resources/databases/amr/amr
         fi
         """
 
