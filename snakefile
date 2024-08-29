@@ -204,25 +204,25 @@ rule prepare_vfdb:
         """
         # Create directory
         if [ ! -d resources/databases/vfdb ]; then
-d            mkdir resources/databases/vfdb
+            mkdir resources/databases/vfdb
         fi
 
         # Download
         if [ ! -f resources/databases/vfdb/VFDB_setB_pro.fas ]; then
-        wget -O resources/databases/vfdb/VFDB_setB_pro.fas.gz http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
-        gunzip resources/databases/vfdb/VFDB_setB_pro.fas.gz
+            wget -O resources/databases/vfdb/VFDB_setB_pro.fas.gz http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
+            gunzip resources/databases/vfdb/VFDB_setB_pro.fas.gz
         fi
 
         #Generate mapping file
         if [ ! -f {output.mapping} ]; then
-        cat resources/databases/vfdb/VFDB_setB_pro.fas | grep '^>' | awk '{{print $1"\t"$0}}' | grep -oP '^>\S+|\bVF\d{{4}}\b|\bVFC\d{{4}}\b' | paste - - - | sed 's/^>//' > {output.mapping}
+            cat resources/databases/vfdb/VFDB_setB_pro.fas | grep '^>' | awk '{{print $1"\t"$0}}' | grep -oP '^>\S+|\bVF\d{{4}}\b|\bVFC\d{{4}}\b' | paste - - - | sed 's/^>//' > {output.mapping}
         fi
 
         #Create mmseqs2 db
         if [ ! -f {output.db} ]; then
-        module load mmseqs2/14.7e284
-        mmseqs createdb resources/databases/vfdb/VFDB_setB_pro.fas {params.db}
-        mmseqs createindex {params.db} tmp
+            module load mmseqs2/14.7e284
+            mmseqs createdb resources/databases/vfdb/VFDB_setB_pro.fas {params.db}
+            mmseqs createindex {params.db} tmp
         fi
         """
 
@@ -441,6 +441,8 @@ rule final:
         jobname="merge_annotations"
     threads:
         1
+    conda:
+        "workflow/envs/environment.yml"
     resources:
         mem_gb=8,
         time=5
