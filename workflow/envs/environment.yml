@@ -1,0 +1,8 @@
+name: traitor
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pandas=2.2.2
