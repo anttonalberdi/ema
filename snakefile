@@ -432,7 +432,7 @@ rule final:
         pfam="results/pfam/{genome}.txt",
         ec="resources/databases/pfam/pfam_ec.tsv",
         vfdb="results/vfdb/{genome}.txt",
-        vfmap="resources/databases/vfdb/vfdb.tsv",
+        vf="resources/databases/vfdb/vfdb.tsv",
         amr="results/amr/{genome}.txt",
         sp="results/signalp/{genome}.txt"
     output:
