@@ -73,7 +73,8 @@ rule prepare_kofams:
         h3f="resources/databases/kofams/kofams.h3f",
         h3i="resources/databases/kofams/kofams.h3i",
         h3m="resources/databases/kofams/kofams.h3m",
-        h3p="resources/databases/kofams/kofams.h3p"
+        h3p="resources/databases/kofams/kofams.h3p",
+        json="resources/databases/kofams/kegg.json"
     params:
         jobname="pr.kofams"
     threads:
@@ -88,25 +89,27 @@ rule prepare_kofams:
             mkdir resources/databases/kofams
         fi
 
-        # Change to working directory
-        cd resources/databases/kofams/
-
         # Download
-        if [ ! -f profiles.tar.gz ]; then
-            wget https://www.genome.jp/ftp/db/kofam/profiles.tar.gz
+        if [ ! -f resources/databases/kofams/profiles.tar.gz ]; then
+            wget -O resources/databases/kofams/profiles.tar.gz https://www.genome.jp/ftp/db/kofam/profiles.tar.gz
+        fi
+
+        # Download KEGG hierarchy
+        if [ ! -f {output.json} ]; then
+            curl -o {output.json} "https://www.kegg.jp/kegg-bin/download_htext?htext=ko00001.keg&format=json&filedir="
         fi
 
         # Decompress
-        if [ ! -f kofams ]; then
-            tar -xvzf profiles.tar.gz
-            cat profiles/*hmm > kofams
-            rm -rf profiles
+        if [ ! -f resources/databases/kofams/kofams ]; then
+            tar -xvzf resources/databases/kofams/profiles.tar.gz -C resources/databases/kofams
+            cat resources/databases/kofams/profiles/*hmm > resources/databases/kofams/kofams
+            rm -rf resources/databases/kofams/profiles
         fi
 
         # Build index
         if [ ! -f {output.h3p} ]; then
             module load hmmer/3.3.2
-            hmmpress -f kofams
+            hmmpress -f resources/databases/kofams/kofams
         fi
         """
 
@@ -431,7 +434,8 @@ rule signalp:
 rule final:
     input:
         gff="results/prodigal/{genome}.gff",
-        kofams="results/kofams/{genome}.tsv",
+        kofamsdb="results/kofams/{genome}.tsv",
+        kofams="resources/databases/kofams/kegg.json",
         cazy="results/cazy/{genome}.tsv",
         pfam="results/pfam/{genome}.tsv",
         ec="resources/databases/pfam/pfam_ec.tsv",
@@ -455,6 +459,7 @@ rule final:
         """
         python workflow/scripts/merge_annotations.py \
             -gff {input.gff} \
+            -kofamsdb {input.kofamsdb} \
             -kofams {input.kofams} \
             -pfam {input.pfam} \
             -ec {input.ec} \
