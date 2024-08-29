@@ -188,7 +188,7 @@ rule prepare_pfam:
         fi
         """
 
-checkpoint prepare_vfdb:
+rule prepare_vfdb:
     output:
         db="resources/databases/vfdb/vfdb",
         mapping="resources/databases/vfdb/vfdb.tsv"
@@ -204,11 +204,8 @@ checkpoint prepare_vfdb:
         """
         # Create directory
         if [ ! -d resources/databases/vfdb ]; then
-            mkdir resources/databases/vfdb
+d            mkdir resources/databases/vfdb
         fi
-
-        # Move to working directory
-        cd resources/databases/vfdb
 
         # Download
         if [ ! -f resources/databases/vfdb/VFDB_setB_pro.fas ]; then
@@ -217,10 +214,12 @@ checkpoint prepare_vfdb:
         fi
 
         #Generate mapping file
+        if [ ! -f {output.mapping} ]; then
         cat resources/databases/vfdb/VFDB_setB_pro.fas | grep '^>' | awk '{{print $1"\t"$0}}' | grep -oP '^>\S+|\bVF\d{{4}}\b|\bVFC\d{{4}}\b' | paste - - - | sed 's/^>//' > {output.mapping}
+        fi
 
         #Create mmseqs2 db
-        if [ ! -f vfdb ]; then
+        if [ ! -f {output.db} ]; then
         module load mmseqs2/14.7e284
         mmseqs createdb resources/databases/vfdb/VFDB_setB_pro.fas {output.db}
         mmseqs createindex {output.db} tmp
