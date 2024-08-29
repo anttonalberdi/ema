@@ -163,7 +163,9 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     amr_df = amr_df[amr_df['evalue'] < evalue_threshold]
     amr_df = amr_df.rename(columns={'id': 'amr'})
     amr_df = amr_df.groupby('gene', group_keys=False)[['gene','amr','accession','evalue']].apply(select_lowest_evalue, include_groups=False)
-    amr_df = pd.merge(amr_df, amr_to_class[['accession','subtype','class','subclass']], on='accession', how='left')
+    amr_df = pd.merge(amr_df, amr_to_class[['accession','subtype','subclass']], on='accession', how='left')
+    amr_df = amr_df.rename(columns={'subtype': 'resistance_type'})
+    amr_df = amr_df.rename(columns={'subclass': 'resistance_target'})
 
     # Parse VFDB
     vfdb_df = pd.read_csv(vfdb_file, sep='\t', comment='#', header=None, 
@@ -186,7 +188,7 @@ def merge_annotations(gff_file, kofams_file, pfam_file, cazy_file, ec_file, vfdb
     annotations = pd.merge(annotations, kofams_df[['gene', 'kegg']], on='gene', how='left')
     annotations = pd.merge(annotations, pfam_df[['gene', 'pfam', 'ec']], on='gene', how='left')
     annotations = pd.merge(annotations, cazy_df[['gene', 'cazy']], on='gene', how='left')
-    annotations = pd.merge(annotations, amr_df[['gene','subtype','class','subclass']], on='gene', how='left')
+    annotations = pd.merge(annotations, amr_df[['gene','resistance_type','resistance_target']], on='gene', how='left')
     annotations = pd.merge(annotations, vfdb_df[['gene', 'vf', 'vfc']], on='gene', how='left')
     annotations = pd.merge(annotations, signalp_df[['gene', 'signalp']], on='gene', how='left')
 
