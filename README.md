@@ -1,6 +1,12 @@
 # Ensemble MAG annotator
 
-Annotates metagenome-assembled genomes (MAGs) or complete bacterial genomes against the KEGG, PFAM, CAZY, VFDB and AMR databases, and classifies annotations into ecologically meaningful traits. 
+Annotates metagenome-assembled genomes (MAGs) or complete bacterial genomes against the KEGG, PFAM, CAZY, VFDB and AMR databases using HMMER and MMSEQS2, and classifies annotations into ecologically meaningful traits in a straightforward way: you just need to place the genome fasta files in the `resources/genomes` folder.
+
+## Steps
+
+1. Download and prepare databases
+2. Annotate genomes
+3. Merge annotations
 
 ## Usage
 
