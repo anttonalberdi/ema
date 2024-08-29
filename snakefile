@@ -200,6 +200,8 @@ rule prepare_vfdb:
     resources:
         mem_gb=16,
         time=15
+    conda:
+        "workflow/envs/environment.yml"
     shell:
         """
         # Create directory
@@ -215,7 +217,7 @@ rule prepare_vfdb:
 
         #Generate mapping file
         if [ ! -f {output.mapping} ]; then
-            cat resources/databases/vfdb/VFDB_setB_pro.fas | grep '^>' | awk '{{print $1"\t"$0}}' | grep -oP '^>\S+|\bVF\d{{4}}\b|\bVFC\d{{4}}\b' | paste - - - | sed 's/^>//' > {output.mapping}
+            python workflow/scripts/get_fvid.py resources/databases/vfdb/VFDB_setB_pro.fas {output.mapping}
         fi
 
         #Create mmseqs2 db
@@ -436,7 +438,7 @@ rule final:
         amr="results/amr/{genome}.tsv",
         sp="results/signalp/{genome}.txt"
     output:
-        "results/output/{genome}.tsv"
+        "results/final/{genome}.tsv"
     params:
         jobname="merge_annotations"
     threads:
