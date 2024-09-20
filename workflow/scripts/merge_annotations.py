@@ -93,7 +93,7 @@ def merge_annotations(gff_file, kofamsdb_file, kofams_file, pfam_file, cazy_file
     #####################
     
     hmm_attribs = ['accession', 'bitscore', 'evalue', 'id', 'overlap_num', 'region_num']
-    evalue_threshold=0.001
+    evalue_threshold=0.00001
     
     # Parse KOFAMS
     kofams_hits = defaultdict(list)
