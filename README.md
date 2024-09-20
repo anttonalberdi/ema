@@ -19,21 +19,6 @@ module purge && module load snakemake/7.20.0 mamba/1.3.1
 snakemake -j 20 --cluster 'sbatch -o log/{params.jobname}-slurm-%j.out --mem {resources.mem_gb}G --time {resources.time} -c {threads} --job-name={params.jobname} -v'   --use-conda --conda-frontend mamba --conda-prefix conda --latency-wait 600 --keep-going
 ```
 
-### Resistance type (resistance_type)
-
-resistance_type == AMRFinderPlus subtype
-from: https://github.com/ncbi/amr/wiki/Interpreting-results
-
-AMR	Antimicrobial resistance gene
-AMR-SUSCEPTIBLE	Not used in AMRFinderPlus output, but in the Reference Gene Catalog (see note below)
-POINT	Known point mutation associated with antimicrobial resistance
-VIRULENCE	Virulence gene
-ANTIGEN	Gene codes for a known antigen (these are often used for typing)
-ACID	Acid resistance gene
-BIOCIDE	Biocide resistance gene
-HEAT	Heat resistance gene
-METAL	Metal resistance gene
-
 ## Structure
 
 ### 1. METABOLISM
@@ -50,7 +35,6 @@ Transporter proteins can be divided based on the types of molecules they transpo
 
 - **Ion transporters**: Proteins that move ions such as Na⁺, K⁺, Cl⁻, Ca²⁺ across membranes.
 - **Nutrient transporters**: Proteins that facilitate the uptake of essential nutrients, including sugars, amino acids, and vitamins.
-- **Efflux pumps**: Proteins that actively export toxic compounds or antibiotics out of the cell.
 - **Secondary transporters**: Proteins that couple the transport of one molecule to another, typically using ion gradients (e.g., symporters, antiporters).
 - **ABC transporters**: ATP-powered transporters that move a wide variety of molecules, including lipids, ions, and organic molecules.
 
@@ -102,7 +86,8 @@ Mobile genetic elements can be subdivided based on the type of mobility they pro
 ### 8. DEFENSE
 Defense-related proteins can be split based on the specific type of threat they protect against:
 
-- **Antibiotic resistance proteins**: Proteins that confer resistance to antibiotics (e.g., beta-lactamases, efflux pumps).
+- **Antibiotic resistance proteins**: Proteins that degrade/inactivate antibiotics (e.g., beta-lactamases).
+- **Efflux pumps**: Proteins that actively export toxic compounds or antibiotics out of the cell.
 - **Toxin-antitoxin systems**: Pairs of proteins where one is a toxin and the other an antitoxin, often used in stress response.
 - **Restriction-modification systems**: Proteins that protect against foreign DNA, such as restriction enzymes and DNA methyltransferases.
 - **CRISPR-associated proteins**: Proteins involved in microbial adaptive immunity against viruses (e.g., Cas proteins).
@@ -125,6 +110,23 @@ Chaperones can be split based on their specific roles in protein maintenance:
 - **Disaggregation chaperones**: Proteins that help recover proteins from aggregates.
 - **Protein export chaperones**: Proteins that assist in the export or secretion of newly synthesized proteins.
 - **Heat shock proteins**: Chaperones specifically upregulated during heat or stress conditions.
+
+## Resistance details
+
+### Resistance type (resistance_type)
+
+resistance_type == AMRFinderPlus subtype
+from: https://github.com/ncbi/amr/wiki/Interpreting-results
+
+AMR	Antimicrobial resistance gene
+AMR-SUSCEPTIBLE	Not used in AMRFinderPlus output, but in the Reference Gene Catalog (see note below)
+POINT	Known point mutation associated with antimicrobial resistance
+VIRULENCE	Virulence gene
+ANTIGEN	Gene codes for a known antigen (these are often used for typing)
+ACID	Acid resistance gene
+BIOCIDE	Biocide resistance gene
+HEAT	Heat resistance gene
+METAL	Metal resistance gene
 
 ### Resistance target (resistance_target)
 
