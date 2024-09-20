@@ -34,6 +34,17 @@ BIOCIDE	Biocide resistance gene
 HEAT	Heat resistance gene
 METAL	Metal resistance gene
 
+## Structure
+
+### 1. METABOLISM
+Proteins involved in catalyzing metabolic reactions can be further divided based on their specific biochemical functions:
+
+- **Carbohydrate metabolism**: Proteins involved in breaking down or synthesizing sugars (e.g., glycolysis, gluconeogenesis, fermentation).
+- **Lipid metabolism**: Proteins involved in fatty acid synthesis, degradation, and lipid-based energy storage.
+- **Amino acid metabolism**: Proteins involved in the synthesis and breakdown of amino acids.
+- **Nucleotide metabolism**: Enzymes related to the synthesis and breakdown of nucleotides.
+- **Cofactor/vitamin biosynthesis**: Proteins involved in the production of cofactors (e.g., NADH, FAD) and vitamins (e.g., biotin, B12).
+
 ### Resistance target (resistance_target)
 
 resistance_target == AMRFinderPlus subclass
