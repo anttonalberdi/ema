@@ -31,21 +31,25 @@ Encompasses processes involved in acquiring and processing nutrients necessary f
 
 Involves the generation and utilization of energy from nutrients, including processes like respiration and fermentation. This category relies on the nutrients acquired.
 
-### 3. SENSING
+### 3. BIOSYNTHESIS
+
+Encompasses processes involved in synthesizing essential biomolecules, including lipids, vitamins, amino acids, and nucleotides.
+
+### 4. STRUCTURE
+
+Relates to the physical components that make up the microbial cell, influencing motility, stability, and overall function, and serving as the foundation for all cellular processes.
+
+### 5. SENSING
 
 Includes mechanisms that allow microbes to detect changes in their environment and respond appropriately, influencing both nutrition and energy usage.
 
-### 4. DEFENSE
+### 6. DEFENSE
 
 Focuses on protective mechanisms against external threats, such as antibiotics and toxins, which is crucial for survival in competitive environments.
 
-### 5. REGULATION
+### 7. REGULATION
 
 Encompasses the control of gene expression and cellular processes, ensuring that metabolic pathways and defensive mechanisms operate effectively in response to internal and external signals.
-
-### 6. STRUCTURE
-
-Relates to the physical components that make up the microbial cell, influencing motility, stability, and overall function, and serving as the foundation for all cellular processes.
 
 ## Categorisation 2
 
