@@ -19,7 +19,35 @@ module purge && module load snakemake/7.20.0 mamba/1.3.1
 snakemake -j 20 --cluster 'sbatch -o log/{params.jobname}-slurm-%j.out --mem {resources.mem_gb}G --time {resources.time} -c {threads} --job-name={params.jobname} -v'   --use-conda --conda-frontend mamba --conda-prefix conda --latency-wait 600 --keep-going
 ```
 
-## Structure
+## Categorisation 1
+
+This categorisation reflects a logical flow from the fundamental processes of acquiring nutrients and energy, through sensing and responding to the environment, to defending against threats, regulating internal processes, and maintaining structural integrity.
+
+### 1. NUTRITION
+
+Encompasses processes involved in acquiring and processing nutrients necessary for growth and survival. This is foundational for microbial metabolism.
+
+### 2. ENERGY
+
+Involves the generation and utilization of energy from nutrients, including processes like respiration and fermentation. This category relies on the nutrients acquired.
+
+### 3. SENSING
+
+Includes mechanisms that allow microbes to detect changes in their environment and respond appropriately, influencing both nutrition and energy usage.
+
+### 4. DEFENSE
+
+Focuses on protective mechanisms against external threats, such as antibiotics and toxins, which is crucial for survival in competitive environments.
+
+### 5. REGULATION
+
+Encompasses the control of gene expression and cellular processes, ensuring that metabolic pathways and defensive mechanisms operate effectively in response to internal and external signals.
+
+### 6. STRUCTURE
+
+Relates to the physical components that make up the microbial cell, influencing motility, stability, and overall function, and serving as the foundation for all cellular processes.
+
+## Categorisation 2
 
 ### 1. METABOLISM
 Proteins involved in catalyzing metabolic reactions can be further divided based on their specific biochemical functions:
@@ -30,7 +58,7 @@ Proteins involved in catalyzing metabolic reactions can be further divided based
 - **Nucleotide metabolism**: Enzymes related to the synthesis and breakdown of nucleotides.
 - **Cofactor/vitamin biosynthesis**: Proteins involved in the production of cofactors (e.g., NADH, FAD) and vitamins (e.g., biotin, B12).
 
-### 2. TRANSPORTER
+### 2. TRANSPORT
 Transporter proteins can be divided based on the types of molecules they transport and the mechanism of transport:
 
 - **Ion transporters**: Proteins that move ions such as Na⁺, K⁺, Cl⁻, Ca²⁺ across membranes.
@@ -38,16 +66,7 @@ Transporter proteins can be divided based on the types of molecules they transpo
 - **Secondary transporters**: Proteins that couple the transport of one molecule to another, typically using ion gradients (e.g., symporters, antiporters).
 - **ABC transporters**: ATP-powered transporters that move a wide variety of molecules, including lipids, ions, and organic molecules.
 
-### 3. RECEPTOR
-Receptor proteins can be further categorized by the type of signal they detect or the downstream signaling pathways they trigger:
-
-- **Chemoreceptors**: Proteins that detect chemical gradients (e.g., chemotaxis receptors).
-- **Photoreceptors**: Proteins that sense light (e.g., rhodopsins, photolyases).
-- **Histidine kinases**: Part of two-component signaling systems that detect environmental stimuli and trigger a phosphorylation cascade.
-- **Quorum-sensing receptors**: Proteins that detect signaling molecules used in bacterial communication for population-density sensing.
-- **Toll-like receptors (TLRs)**: Involved in recognizing microbial-associated molecular patterns in immune-related contexts.
-
-### 4. STRUCTURE
+### 3. STRUCTURE
 Structural proteins can be divided based on the cellular structure they contribute to:
 
 - **Cytoskeletal proteins**: Proteins like MreB, FtsZ, and crescentin involved in cell shape and division.
@@ -56,6 +75,15 @@ Structural proteins can be divided based on the cellular structure they contribu
 - **Capsule proteins**: Proteins involved in the synthesis and assembly of the capsule that protects the microbe from the host immune system.
 - **Spore coat proteins**: Proteins involved in forming the outer coat of bacterial spores (in spore-forming bacteria like Bacillus).
 
+### 4. RECEPTOR
+Receptor proteins can be further categorized by the type of signal they detect or the downstream signaling pathways they trigger:
+
+- **Chemoreceptors**: Proteins that detect chemical gradients (e.g., chemotaxis receptors).
+- **Photoreceptors**: Proteins that sense light (e.g., rhodopsins, photolyases).
+- **Histidine kinases**: Part of two-component signaling systems that detect environmental stimuli and trigger a phosphorylation cascade.
+- **Quorum-sensing receptors**: Proteins that detect signaling molecules used in bacterial communication for population-density sensing.
+- **Toll-like receptors (TLRs)**: Involved in recognizing microbial-associated molecular patterns in immune-related contexts.
+- 
 ### 5. SIGNAL
 Signal-related proteins can be subdivided based on their function in cell-to-cell communication or intracellular signaling:
 
@@ -65,7 +93,7 @@ Signal-related proteins can be subdivided based on their function in cell-to-cel
 - **Extracellular signaling peptides**: Proteins or peptides secreted to communicate with other microbes.
 - **Autoinducers**: Small diffusible molecules like acyl-homoserine lactones (AHLs) that regulate quorum sensing.
 
-### 6. REGULATOR
+### 6. REGULATION
 Regulatory proteins can be classified based on the processes they regulate:
 
 - **Transcription factors**: Proteins that bind to DNA and regulate transcription.
